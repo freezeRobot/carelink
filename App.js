@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { onAuthStateChanged } from '@firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase/firebaseConfig';
-import Logscreen from './screens/Logscreen'; // 登录和注册界面
-import Datascreen from './screens/Datascreen'; // 健康数据界面
+import LogScreen from './screens/Logscreen';// 登录界面
+import DataScreen from './screens/Datascreen'; // 健康数据界面
+import LogoutScreen from './screens/LogoutScreen'; // 登出界面
 
 const Stack = createStackNavigator();
 
@@ -22,9 +23,12 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator>
         {user ? (
-          <Stack.Screen name="Datascreen" component={Datascreen} />
+          <>
+            <Stack.Screen name="DataScreen" component={DataScreen} />
+            <Stack.Screen name="LogoutScreen" component={LogoutScreen} />
+          </>
         ) : (
-          <Stack.Screen name="Logscreen" component={Logscreen} />
+          <Stack.Screen name="LogScreen" component={LogScreen} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

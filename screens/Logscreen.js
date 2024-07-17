@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from '@firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebaseConfig';
+import { saveRole } from '../firebase/roleHelper'; // 导入 saveRole 函数
 
-const Logscreen = () => {
+const LogScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+  const [tempRole, setTempRole] = useState(''); // 用于暂时存储选择的身份
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'Datascreen' }],
+          routes: [{ name: 'DataScreen' }],
         });
       }
     });
@@ -25,66 +27,86 @@ const Logscreen = () => {
   const handleAuthentication = async () => {
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log(`User signed in with email: ${email}`);
+        console.log(`Selected role: ${tempRole}`); // 打印当前的tempRole
+
+        // 上报并存储身份信息
+        if (tempRole) {
+          await saveRole(user.uid, tempRole);
+        }
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        console.log(`User registered with email: ${email}`);
+        Alert.alert('注册成功', '请重新登录');
+        await signOut(auth); // 注册成功后手动签出用户
+        navigation.navigate('LogScreen'); // 签出后导航回到 LogScreen
+        setIsLogin(true);
+        setEmail('');
+        setPassword('');
       }
     } catch (error) {
       console.error('Authentication error:', error.message);
+      Alert.alert('Authentication error', error.message);
     }
   };
 
+  const handleRoleSelection = (role) => {
+    setTempRole(role); // 暂时存储选择的身份
+    console.log(`TempRole set to: ${role}`); // 打印当前的tempRole
+  };
+
   return (
-    <ImageBackground 
-      source={require('../assets/background.jpg')} 
-      style={styles.background}
-    >
+    <ImageBackground source={require('../assets/background.jpg')} style={styles.background}>
       <View style={styles.container}>
         <Text style={styles.title}>应用名称</Text>
-        
-        <View style={styles.selectionContainer}>
-          <Text style={styles.selectionTitle}>选择你的身份</Text>
-          <View style={styles.selectionButtons}>
-            <TouchableOpacity style={styles.selectionButton}>
-              <Text style={styles.buttonLabel}>父母</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.selectionButton}>
-              <Text style={styles.buttonLabel}>子女</Text>
-            </TouchableOpacity>
+        {isLogin && (
+          <View style={styles.selectionContainer}>
+            <Text style={styles.selectionTitle}>选择你的身份</Text>
+            <View style={styles.selectionButtons}>
+              <TouchableOpacity
+                style={[styles.selectionButton, tempRole === 'parent' && styles.selectedButton]}
+                onPress={() => handleRoleSelection('parent')}
+              >
+                <Text style={styles.buttonLabel}>父母</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.selectionButton, tempRole === 'child' && styles.selectedButton]}
+                onPress={() => handleRoleSelection('child')}
+              >
+                <Text style={styles.buttonLabel}>子女</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-
+        )}
         <View style={styles.inputContainer}>
-          <TextInput 
-            style={styles.input} 
-            placeholder="用户名" 
-            placeholderTextColor="#888" 
+          <TextInput
+            style={styles.input}
+            placeholder="用户名"
+            placeholderTextColor="#888"
             value={email}
             onChangeText={setEmail}
           />
-          <TextInput 
-            style={styles.input} 
-            placeholder="密码" 
-            placeholderTextColor="#888" 
-            secureTextEntry 
+          <TextInput
+            style={styles.input}
+            placeholder="密码"
+            placeholderTextColor="#888"
+            secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
         </View>
-
         <TouchableOpacity style={styles.loginButton} onPress={handleAuthentication}>
           <Text style={styles.loginButtonText}>{isLogin ? '登录' : '注册'}</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.signupButton} onPress={() => setIsLogin(!isLogin)}>
-          <Text style={styles.signupButtonText}>
-            {isLogin ? '没有账号？注册' : '已有账号？登录'}
-          </Text>
+          <Text style={styles.signupButtonText}>{isLogin ? '没有账号？注册' : '已有账号？登录'}</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
   );
-}
+};
 
 const styles = StyleSheet.create({
   background: {
@@ -97,32 +119,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.6)', // 半透明白色背景，增加可读性
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 24,
-  },
-  selectionContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  selectionTitle: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  selectionButtons: {
-    flexDirection: 'row',
-  },
-  selectionButton: {
-    backgroundColor: '#ddd',
-    padding: 10,
-    borderRadius: 4,
-    marginHorizontal: 8,
-  },
-  buttonLabel: {
-    fontSize: 16,
   },
   inputContainer: {
     width: '100%',
@@ -161,6 +163,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  selectionContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  selectionTitle: {
+    fontSize: 18,
+    marginBottom: 8,
+  },
+  selectionButtons: {
+    flexDirection: 'row',
+  },
+  selectionButton: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 4,
+    marginHorizontal: 8,
+  },
+  selectedButton: {
+    backgroundColor: '#aaa',
+  },
+  buttonLabel: {
+    fontSize: 16,
+  },
 });
 
-export default Logscreen;
+export default LogScreen;

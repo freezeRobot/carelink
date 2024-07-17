@@ -1,7 +1,26 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import HealthInput from '../firebase/HealthInput';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
 
-const HealthDashboard = () => {
+const DataScreen = () => {
+  const [user, setUser] = React.useState(null);
+  const auth = getAuth();
+  const navigation = useNavigation();
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+
+    return () => unsubscribe();
+  }, [auth]);
+
+  const handleLogout = () => {
+    navigation.navigate('LogoutScreen');
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -21,21 +40,8 @@ const HealthDashboard = () => {
                 <Text style={styles.scoreLabel}>Score</Text>
               </View>
               <View style={styles.dataContent}>
-                <View style={styles.dataItem}>
-                  <View style={[styles.circle, { backgroundColor: 'green' }]} />
-                  <Text style={styles.dataLabel}>blood pressure</Text>
-                  <Text style={styles.dataValue}>100</Text>
-                </View>
-                <View style={styles.dataItem}>
-                  <View style={[styles.circle, { backgroundColor: 'gray' }]} />
-                  <Text style={styles.dataLabel}>blood sugar</Text>
-                  <Text style={styles.dataValue}>100</Text>
-                </View>
-                <View style={styles.dataItem}>
-                  <View style={[styles.circle, { backgroundColor: 'yellow' }]} />
-                  <Text style={styles.dataLabel}>remaining tasks</Text>
-                  <Text style={styles.dataValue}>100</Text>
-                </View>
+                {user && <HealthInput user={user} dataType="blood pressure" />}
+                {user && <HealthInput user={user} dataType="blood sugar" />}
               </View>
             </View>
           </View>
@@ -66,8 +72,8 @@ const HealthDashboard = () => {
         <TouchableOpacity style={styles.footerButton}>
           <Text style={styles.footerButtonText}>Label 2</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton}>
-          <Text style={styles.footerButtonText}>Label 3</Text>
+        <TouchableOpacity style={styles.footerButton} onPress={handleLogout}>
+          <Text style={styles.footerButtonText}>登出</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -197,4 +203,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HealthDashboard;
+export default DataScreen;
