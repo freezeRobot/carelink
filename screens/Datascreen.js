@@ -1,13 +1,12 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Button, StyleSheet, ScrollView } from 'react-native';
 import HealthInput from '../firebase/HealthInput';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useNavigation } from '@react-navigation/native';
+import BottomNavigation from './BottomNavigation';
 
 const DataScreen = () => {
   const [user, setUser] = React.useState(null);
   const auth = getAuth();
-  const navigation = useNavigation();
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -17,14 +16,9 @@ const DataScreen = () => {
     return () => unsubscribe();
   }, [auth]);
 
-  const handleLogout = () => {
-    navigation.navigate('LogoutScreen');
-  };
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* 健康数据模块 */}
         <View style={styles.healthDataContainer}>
           <Text style={styles.title}>我的健康数据</Text>
           <View style={styles.dataBox}>
@@ -47,7 +41,6 @@ const DataScreen = () => {
           </View>
         </View>
 
-        {/* 近期步数模块 */}
         <View style={styles.stepsContainer}>
           <View style={styles.stepsHeader}>
             <Text style={styles.title}>近期步数</Text>
@@ -58,24 +51,12 @@ const DataScreen = () => {
           </View>
         </View>
 
-        {/* 生成健康报告按钮 */}
         <View style={styles.reportButtonContainer}>
           <Button title="生成健康报告" onPress={() => {}} />
         </View>
       </ScrollView>
 
-      {/* 底部导航按钮 */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerButton}>
-          <Text style={styles.footerButtonText}>Label 1</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton}>
-          <Text style={styles.footerButtonText}>Label 2</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton} onPress={handleLogout}>
-          <Text style={styles.footerButtonText}>登出</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNavigation />
     </View>
   );
 };
@@ -84,6 +65,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingBottom: 60, // 预留空间给底部导航栏
   },
   scrollContent: {
     flexGrow: 1,
@@ -183,23 +165,6 @@ const styles = StyleSheet.create({
   reportButtonContainer: {
     width: '100%',
     marginBottom: 16,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    backgroundColor: '#d3d3d3',
-  },
-  footerButton: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 8,
-    marginHorizontal: 4,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-  },
-  footerButtonText: {
-    fontSize: 16,
   },
 });
 
