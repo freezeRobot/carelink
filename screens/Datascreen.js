@@ -51,10 +51,10 @@ const DataScreen = () => {
 
       if (updateType === 'blood pressure') {
         const bloodPressureRef = doc(firestore, 'blood pressure', `${uid}_${timestamp}`);
-        await setDoc(bloodPressureRef, { value: bloodPressure, timestamp: new Date() }, { merge: true });
+        await setDoc(bloodPressureRef, { uid, value: bloodPressure, timestamp: new Date() }, { merge: true });
       } else if (updateType === 'blood sugar') {
         const bloodSugarRef = doc(firestore, 'blood sugar', `${uid}_${timestamp}`);
-        await setDoc(bloodSugarRef, { value: bloodSugar, timestamp: new Date() }, { merge: true });
+        await setDoc(bloodSugarRef, { uid, value: bloodSugar, timestamp: new Date() }, { merge: true });
       }
 
       setModalVisible(false);
@@ -71,7 +71,7 @@ const DataScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>我的健康数据</Text>
+        <Text style={styles.title}>My Healthy Data</Text>
         <Text style={styles.dateText}>Today {new Date().toISOString().split('T')[0]}</Text>
 
         <View style={styles.scoreContainer}>
@@ -166,9 +166,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 8,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   dateText: {
     fontSize: 16,

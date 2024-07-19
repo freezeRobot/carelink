@@ -36,16 +36,16 @@ const BottomNavigation = () => {
         style={getButtonStyle('DataScreen')}
         onPress={() => navigateTo('DataScreen')}
       >
-        <Text style={styles.footerButtonText}>健康数据</Text>
+        <Text style={styles.footerButtonText}>Data</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={getButtonStyle('TaskListScreen')}
         onPress={() => navigateTo('TaskListScreen')}
       >
-        <Text style={styles.footerButtonText}>任务列表</Text>
+        <Text style={styles.footerButtonText}>Tasks</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.footerButton} onPress={handleLogout}>
-        <Text style={styles.footerButtonText}>登出</Text>
+        <Text style={styles.footerButtonText}>Logout</Text>
       </TouchableOpacity>
     </View>
   );

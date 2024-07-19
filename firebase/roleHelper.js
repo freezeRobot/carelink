@@ -1,4 +1,3 @@
-//firebase\roleHelper.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -9,6 +8,7 @@ export const saveRole = async (uid, role) => {
 
     // 存储在 Firestore
     await setDoc(doc(firestore, `users/${uid}`), {
+      uid,
       role,
     });
 
@@ -16,6 +16,7 @@ export const saveRole = async (uid, role) => {
 
     // 存储在本地
     await AsyncStorage.setItem('role', role);
+    await AsyncStorage.setItem('uid', uid); // 存储 UID
   } catch (error) {
     console.error('Error saving role to Firestore:', error);
   }
@@ -39,6 +40,7 @@ export const getRole = async (uid) => {
       role = roleDoc.data().role;
       console.log(`Role ${role} retrieved from Firestore for UID: ${uid}`); // 日志记录
       await AsyncStorage.setItem('role', role); // 更新本地存储
+      await AsyncStorage.setItem('uid', uid); // 更新本地存储 UID
       return role;
     } else {
       console.log(`No role found in Firestore for UID: ${uid}`);

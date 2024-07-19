@@ -7,6 +7,7 @@ import LogScreen from './screens/Logscreen'; // 登录界面
 import DataScreen from './screens/Datascreen'; // 健康数据界面
 import TaskListScreen from './screens/TaskListScreen'; // 任务列表界面
 import LogoutScreen from './screens/LogoutScreen'; // 登出界面
+import CreateTaskScreen from './screens/CreateTaskScreen';//创建任务界面
 
 const Stack = createStackNavigator();
 
@@ -25,28 +26,13 @@ const App = () => {
       <Stack.Navigator>
         {user ? (
           <>
-            <Stack.Screen
-              name="DataScreen"
-              component={DataScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="TaskListScreen"
-              component={TaskListScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="LogoutScreen"
-              component={LogoutScreen}
-              options={{ headerShown: false }}
-            />
+            <Stack.Screen name="DataScreen" component={DataScreen} />
+            <Stack.Screen name="LogoutScreen" component={LogoutScreen} />
+            <Stack.Screen name="TaskListScreen" component={TaskListScreen} />
+            <Stack.Screen name="CreateTaskScreen" component={CreateTaskScreen} />
           </>
         ) : (
-          <Stack.Screen
-            name="LogScreen"
-            component={LogScreen}
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="LogScreen" component={LogScreen} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

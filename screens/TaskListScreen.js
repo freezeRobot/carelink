@@ -1,17 +1,33 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import BottomNavigation from './BottomNavigation';
+import { useNavigation } from '@react-navigation/native';
 
 const TaskListScreen = () => {
   const [tasks, setTasks] = useState({
     todo: ['task1', 'task2', 'taskx'],
     done: ['task1', 'task2', 'task3'],
   });
+  const navigation = useNavigation();
+
+  const handleManageTasks = () => {
+    Alert.alert(
+      '任务管理',
+      '是否创建新的任务',
+      [
+        { text: '否', onPress: () => console.log('取消') },
+        { text: '是', onPress: () => navigation.navigate('CreateTaskScreen') },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>My To Do’s</Text>
+        <Text style={styles.dateText}>Today {new Date().toISOString().split('T')[0]}</Text>
+        <Button title="任务管理" onPress={handleManageTasks} style={styles.manageButton} />
+
         <View style={styles.section}>
           <View style={styles.header}>
             <Text style={styles.headerText}>To Do</Text>
@@ -65,6 +81,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginBottom: 20,
+  },
+  dateText: {
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  manageButton: {
     marginBottom: 20,
   },
   section: {

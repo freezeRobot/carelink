@@ -38,6 +38,7 @@ const LogScreen = () => {
         }
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
         console.log(`User registered with email: ${email}`);
         Alert.alert('注册成功', '请重新登录');
         await signOut(auth); // 注册成功后手动签出用户
