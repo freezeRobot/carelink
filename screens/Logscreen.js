@@ -61,22 +61,22 @@ const LogScreen = () => {
   return (
     <ImageBackground source={require('../assets/background.jpg')} style={styles.background}>
       <View style={styles.container}>
-        <Text style={styles.title}>应用名称</Text>
+        <Text style={styles.title}>name</Text>
         {isLogin && (
           <View style={styles.selectionContainer}>
-            <Text style={styles.selectionTitle}>选择你的身份</Text>
+            <Text style={styles.selectionTitle}>choose role</Text>
             <View style={styles.selectionButtons}>
               <TouchableOpacity
                 style={[styles.selectionButton, tempRole === 'parent' && styles.selectedButton]}
                 onPress={() => handleRoleSelection('parent')}
               >
-                <Text style={styles.buttonLabel}>父母</Text>
+                <Text style={styles.buttonLabel}>Parent</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.selectionButton, tempRole === 'child' && styles.selectedButton]}
                 onPress={() => handleRoleSelection('child')}
               >
-                <Text style={styles.buttonLabel}>子女</Text>
+                <Text style={styles.buttonLabel}>Child</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -84,14 +84,14 @@ const LogScreen = () => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="用户名"
+            placeholder="username"
             placeholderTextColor="#888"
             value={email}
             onChangeText={setEmail}
           />
           <TextInput
             style={styles.input}
-            placeholder="密码"
+            placeholder="password"
             placeholderTextColor="#888"
             secureTextEntry
             value={password}
@@ -99,10 +99,10 @@ const LogScreen = () => {
           />
         </View>
         <TouchableOpacity style={styles.loginButton} onPress={handleAuthentication}>
-          <Text style={styles.loginButtonText}>{isLogin ? '登录' : '注册'}</Text>
+          <Text style={styles.loginButtonText}>{isLogin ? 'Log In' : 'Sign Up'}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.signupButton} onPress={() => setIsLogin(!isLogin)}>
-          <Text style={styles.signupButtonText}>{isLogin ? '没有账号？注册' : '已有账号？登录'}</Text>
+          <Text style={styles.signupButtonText}>{isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Log In'}</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>

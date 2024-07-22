@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { Picker } from '@react-native-picker/picker';
 
@@ -23,18 +23,14 @@ const CreateTaskScreen = () => {
         const uid = user.uid;
 
         const tasksRef = collection(firestore, 'tasks');
-        const q = query(tasksRef, where('uid', '==', uid), where('date', '==', timestamp));
-        const querySnapshot = await getDocs(q);
-        const taskId = querySnapshot.size + 1;
-
-        await addDoc(tasksRef, {
+        const docRef = await addDoc(tasksRef, {
           uid,
           date: timestamp,
-          taskId,
           taskName,
           taskType,
           taskDescription,
           targetTime,
+          isCompleted: false,
           createdAt: new Date(),
         });
 

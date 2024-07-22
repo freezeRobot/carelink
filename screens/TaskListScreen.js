@@ -1,14 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
-import { useNavigation } from '@react-navigation/native';
 
 const TaskListScreen = () => {
-  const [tasks, setTasks] = useState({
-    todo: ['task1', 'task2', 'taskx'],
-    done: ['task1', 'task2', 'task3'],
-  });
+  const [tasks, setTasks] = useState({ todo: [], done: [] });
   const navigation = useNavigation();
+  const auth = getAuth();
+  const firestore = getFirestore();
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTasks();
+    }, [])
+  );
+
+  const fetchTasks = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const today = new Date();
+        const timestamp = today.toISOString().split('T')[0];
+        const tasksRef = collection(firestore, 'tasks');
+        const q = query(tasksRef, where('uid', '==', user.uid), where('date', '==', timestamp));
+        const querySnapshot = await getDocs(q);
+        const todoTasks = [];
+        const doneTasks = [];
+
+        querySnapshot.forEach((doc) => {
+          const task = doc.data();
+          task.id = doc.id; // 保存文档 ID
+          if (task.isCompleted) {
+            doneTasks.push(task);
+          } else {
+            todoTasks.push(task);
+          }
+        });
+
+        setTasks({ todo: todoTasks, done: doneTasks });
+      }
+    } catch (error) {
+      console.error('Error fetching tasks: ', error.message);
+    }
+  };
 
   const handleManageTasks = () => {
     Alert.alert(
@@ -19,6 +59,27 @@ const TaskListScreen = () => {
         { text: '是', onPress: () => navigation.navigate('CreateTaskScreen') },
       ]
     );
+  };
+
+  const handleTaskCompletion = (task) => {
+    Alert.alert(
+      '任务完成',
+      '确定该任务已完成吗？',
+      [
+        { text: '取消', onPress: () => console.log('任务未完成') },
+        { text: '确定', onPress: () => updateTaskCompletion(task) },
+      ]
+    );
+  };
+
+  const updateTaskCompletion = async (task) => {
+    try {
+      const taskRef = doc(firestore, 'tasks', task.id); // 使用正确的文档 ID
+      await updateDoc(taskRef, { isCompleted: true });
+      fetchTasks(); // 更新任务列表
+    } catch (error) {
+      console.error('Error updating task: ', error.message);
+    }
   };
 
   return (
@@ -35,9 +96,10 @@ const TaskListScreen = () => {
           </View>
           {tasks.todo.map((task, index) => (
             <View style={styles.task} key={index}>
-              <Text>{task}</Text>
-              <Button title="Label" onPress={() => {}} />
-              <TouchableOpacity style={styles.checkbox}>
+              <Text>{task.taskName}</Text>
+              <Text>{task.taskType}</Text>
+              <Text>{task.targetTime}</Text>
+              <TouchableOpacity style={styles.checkbox} onPress={() => handleTaskCompletion(task)}>
                 <View style={styles.uncheckedBox} />
               </TouchableOpacity>
             </View>
@@ -51,8 +113,9 @@ const TaskListScreen = () => {
           </View>
           {tasks.done.map((task, index) => (
             <View style={styles.task} key={index}>
-              <Text>{task}</Text>
-              <Button title="Label" onPress={() => {}} />
+              <Text>{task.taskName}</Text>
+              <Text>{task.taskType}</Text>
+              <Text>{task.targetTime}</Text>
               <TouchableOpacity style={styles.checkbox}>
                 <View style={styles.checkedBox} />
               </TouchableOpacity>
@@ -61,7 +124,6 @@ const TaskListScreen = () => {
         </View>
       </ScrollView>
 
-      {/* 底部导航按钮 */}
       <BottomNavigation />
     </View>
   );

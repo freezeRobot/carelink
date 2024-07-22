@@ -38,9 +38,9 @@ const DataScreen = () => {
     const bloodPressureDoc = await getDoc(bloodPressureRef);
     const bloodSugarDoc = await getDoc(bloodSugarRef);
 
-    setTodayBloodPressure(bloodPressureDoc.exists() ? bloodPressureDoc.data().value : '今天尚未检测');
-    setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : '今天尚未检测');
-    setRemainingTasks(0); // 默认剩余任务数为0，可以根据实际数据进行调整
+    setTodayBloodPressure(bloodPressureDoc.exists() ? bloodPressureDoc.data().value : 'Not measured today');
+    setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 'Not measured today');
+    setRemainingTasks(0); // Default remaining tasks to 0, can be adjusted based on actual data
   };
 
   const handleSaveValues = async () => {
@@ -58,7 +58,7 @@ const DataScreen = () => {
       }
 
       setModalVisible(false);
-      setUpdateType(null); // 重置更新类型
+      setUpdateType(null); // Reset update type
       fetchTodayValues(user);
     }
   };
@@ -81,23 +81,23 @@ const DataScreen = () => {
 
         <View style={styles.healthDataContainer}>
           <View style={styles.dataRow}>
-            <Text style={styles.sectionTitle}>今日健康</Text>
-            <Button title="更新" onPress={() => handleUpdateClick('select')} />
+            <Text style={styles.sectionTitle}>Today's Health</Text>
+            <Button title="Update" onPress={() => handleUpdateClick('select')} />
           </View>
           <View style={styles.dataBox}>
             <View style={styles.dataContentRow}>
               <View style={styles.circle} />
-              <Text style={styles.dataLabel}>血压: </Text>
+              <Text style={styles.dataLabel}>Blood Pressure: </Text>
               <Text style={styles.dataValue}>{todayBloodPressure}</Text>
             </View>
             <View style={styles.dataContentRow}>
               <View style={[styles.circle, styles.grayCircle]} />
-              <Text style={styles.dataLabel}>血糖: </Text>
+              <Text style={styles.dataLabel}>Blood Sugar: </Text>
               <Text style={styles.dataValue}>{todayBloodSugar}</Text>
             </View>
             <View style={styles.dataContentRow}>
               <View style={[styles.circle, styles.blueCircle]} />
-              <Text style={styles.dataLabel}>剩余任务数: </Text>
+              <Text style={styles.dataLabel}>Remaining Tasks: </Text>
               <Text style={styles.dataValue}>{remainingTasks}</Text>
             </View>
           </View>
@@ -105,8 +105,8 @@ const DataScreen = () => {
 
         <View style={styles.stepsContainer}>
           <View style={styles.stepsHeader}>
-            <Text style={styles.sectionTitle}>近期步数</Text>
-            <Button title="设备" onPress={() => {}} />
+            <Text style={styles.sectionTitle}>Recent Steps</Text>
+            <Button title="Device" onPress={() => {}} />
           </View>
           <View style={styles.chartPlaceholder}>
             <Text style={styles.chartText}>CHART</Text>
@@ -114,7 +114,7 @@ const DataScreen = () => {
         </View>
 
         <View style={styles.reportButtonContainer}>
-          <Button title="生成健康报告" onPress={() => {}} />
+          <Button title="Generate Health Report" onPress={() => {}} />
         </View>
       </ScrollView>
 
@@ -129,23 +129,23 @@ const DataScreen = () => {
         <View style={styles.modalContainer}>
           {updateType === 'select' ? (
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>选择要更新的项目</Text>
-              <Button title="更新血压" onPress={() => handleUpdateClick('blood pressure')} />
-              <Button title="更新血糖" onPress={() => handleUpdateClick('blood sugar')} />
-              <Button title="取消" onPress={() => setModalVisible(false)} />
+              <Text style={styles.modalTitle}>Select Item to Update</Text>
+              <Button title="Update Blood Pressure" onPress={() => handleUpdateClick('blood pressure')} />
+              <Button title="Update Blood Sugar" onPress={() => handleUpdateClick('blood sugar')} />
+              <Button title="Cancel" onPress={() => setModalVisible(false)} />
             </View>
           ) : (
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>更新{updateType === 'blood pressure' ? '血压' : '血糖'}</Text>
+              <Text style={styles.modalTitle}>Update {updateType === 'blood pressure' ? 'Blood Pressure' : 'Blood Sugar'}</Text>
               <TextInput
                 style={styles.input}
-                placeholder={`输入${updateType === 'blood pressure' ? '血压' : '血糖'}`}
+                placeholder={`Enter ${updateType === 'blood pressure' ? 'Blood Pressure' : 'Blood Sugar'}`}
                 value={updateType === 'blood pressure' ? bloodPressure : bloodSugar}
                 onChangeText={updateType === 'blood pressure' ? setBloodPressure : setBloodSugar}
                 keyboardType="numeric"
               />
-              <Button title="保存" onPress={handleSaveValues} />
-              <Button title="取消" onPress={() => setModalVisible(false)} />
+              <Button title="Save" onPress={handleSaveValues} />
+              <Button title="Cancel" onPress={() => setModalVisible(false)} />
             </View>
           )}
         </View>
