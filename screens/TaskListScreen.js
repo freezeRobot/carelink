@@ -4,11 +4,15 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
+import { useAuth } from '../AuthContext'; // 确保正确导入 AuthContext
 
 const TaskListScreen = () => {
   const [tasks, setTasks] = useState({ todo: [], done: [] });
+  const [todoCount, setTodoCount] = useState(0);
+  const [doneCount, setDoneCount] = useState(0);
   const navigation = useNavigation();
   const auth = getAuth();
+  const { role } = useAuth(); // 获取用户和角色信息
   const firestore = getFirestore();
 
   useEffect(() => {
@@ -44,6 +48,8 @@ const TaskListScreen = () => {
         });
 
         setTasks({ todo: todoTasks, done: doneTasks });
+        setTodoCount(todoTasks.length); // 设置未完成任务数量
+        setDoneCount(doneTasks.length); // 设置已完成任务数量
       }
     } catch (error) {
       console.error('Error fetching tasks: ', error.message);
@@ -87,18 +93,20 @@ const TaskListScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>My To Do’s</Text>
         <Text style={styles.dateText}>Today {new Date().toISOString().split('T')[0]}</Text>
-        <Button title="任务管理" onPress={handleManageTasks} style={styles.manageButton} />
+        {role === 'child' && (
+          <Button title="任务管理" onPress={handleManageTasks} style={styles.manageButton} />
+        )}
 
         <View style={styles.section}>
           <View style={styles.header}>
             <Text style={styles.headerText}>To Do</Text>
-            <Text style={styles.headerText}>数量</Text>
+            <Text style={styles.headerText}>{todoCount}</Text>
           </View>
           {tasks.todo.map((task, index) => (
             <View style={styles.task} key={index}>
-              <Text>{task.taskName}</Text>
-              <Text>{task.taskType}</Text>
-              <Text>{task.targetTime}</Text>
+              <Text style={styles.taskText}>{task.taskName}</Text>
+              <Text style={styles.taskText}>{task.taskType}</Text>
+              <Text style={styles.taskText}>{task.targetTime}</Text>
               <TouchableOpacity style={styles.checkbox} onPress={() => handleTaskCompletion(task)}>
                 <View style={styles.uncheckedBox} />
               </TouchableOpacity>
@@ -109,13 +117,13 @@ const TaskListScreen = () => {
         <View style={styles.section}>
           <View style={styles.header}>
             <Text style={styles.headerText}>Done</Text>
-            <Text style={styles.headerText}>数量</Text>
+            <Text style={styles.headerText}>{doneCount}</Text>
           </View>
           {tasks.done.map((task, index) => (
             <View style={styles.task} key={index}>
-              <Text>{task.taskName}</Text>
-              <Text>{task.taskType}</Text>
-              <Text>{task.targetTime}</Text>
+              <Text style={styles.taskText}>{task.taskName}</Text>
+              <Text style={styles.taskText}>{task.taskType}</Text>
+              <Text style={styles.taskText}>{task.targetTime}</Text>
               <TouchableOpacity style={styles.checkbox}>
                 <View style={styles.checkedBox} />
               </TouchableOpacity>
@@ -174,6 +182,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
     borderBottomWidth: 1,
     borderColor: '#cccccc',
+  },
+  taskText: {
+    flex: 1,
+    textAlign: 'center',
   },
   checkbox: {
     width: 20,

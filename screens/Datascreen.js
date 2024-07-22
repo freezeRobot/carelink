@@ -3,6 +3,7 @@ import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Touchable
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../AuthContext';
 
 const DataScreen = () => {
   const [user, setUser] = useState(null);
@@ -15,6 +16,7 @@ const DataScreen = () => {
   const [remainingTasks, setRemainingTasks] = useState(0);
   const auth = getAuth();
   const firestore = getFirestore();
+  const { role } = useAuth(); // 获取用户角色
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -82,7 +84,7 @@ const DataScreen = () => {
         <View style={styles.healthDataContainer}>
           <View style={styles.dataRow}>
             <Text style={styles.sectionTitle}>Today's Health</Text>
-            <Button title="Update" onPress={() => handleUpdateClick('select')} />
+            {role === 'parent' && <Button title="Update" onPress={() => handleUpdateClick('select')} />}
           </View>
           <View style={styles.dataBox}>
             <View style={styles.dataContentRow}>

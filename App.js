@@ -1,41 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase/firebaseConfig';
-import LogScreen from './screens/Logscreen'; // 登录界面
-import DataScreen from './screens/Datascreen'; // 健康数据界面
-import TaskListScreen from './screens/TaskListScreen'; // 任务列表界面
-import LogoutScreen from './screens/LogoutScreen'; // 登出界面
-import CreateTaskScreen from './screens/CreateTaskScreen';//创建任务界面
+import { AuthProvider } from './AuthContext'; // 导入 AuthProvider
+import LogScreen from './screens/Logscreen';
+import DataScreen from './screens/Datascreen';
+import TaskListScreen from './screens/TaskListScreen';
+import LogoutScreen from './screens/LogoutScreen';
+import CreateTaskScreen from './screens/CreateTaskScreen';
 
 const Stack = createStackNavigator();
 
 const App = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
-
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        {user ? (
-          <>
-            <Stack.Screen name="DataScreen" component={DataScreen} />
-            <Stack.Screen name="LogoutScreen" component={LogoutScreen} />
-            <Stack.Screen name="TaskListScreen" component={TaskListScreen} />
-            <Stack.Screen name="CreateTaskScreen" component={CreateTaskScreen} />
-          </>
-        ) : (
+    <AuthProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
           <Stack.Screen name="LogScreen" component={LogScreen} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen name="DataScreen" component={DataScreen} />
+          <Stack.Screen name="TaskListScreen" component={TaskListScreen} />
+          <Stack.Screen name="LogoutScreen" component={LogoutScreen} />
+          <Stack.Screen name="CreateTaskScreen" component={CreateTaskScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
   );
 };
 
