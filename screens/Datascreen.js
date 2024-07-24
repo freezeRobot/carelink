@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Alert } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
+import { getMockSteps } from '../apis/stepApi';
 
 const DataScreen = () => {
   const [user, setUser] = useState(null);
@@ -14,6 +15,7 @@ const DataScreen = () => {
   const [todayBloodPressure, setTodayBloodPressure] = useState(null);
   const [todayBloodSugar, setTodayBloodSugar] = useState(null);
   const [remainingTasks, setRemainingTasks] = useState(0);
+  const [todaySteps, setTodaySteps] = useState(null);
   const auth = getAuth();
   const firestore = getFirestore();
   const { role } = useAuth(); // 获取用户角色
@@ -36,12 +38,15 @@ const DataScreen = () => {
     
     const bloodPressureRef = doc(firestore, 'blood pressure', `${uid}_${timestamp}`);
     const bloodSugarRef = doc(firestore, 'blood sugar', `${uid}_${timestamp}`);
+    const stepsRef = doc(firestore, 'steps', `${uid}_${timestamp}`); // 新增步数文档
 
     const bloodPressureDoc = await getDoc(bloodPressureRef);
     const bloodSugarDoc = await getDoc(bloodSugarRef);
+    const stepsDoc = await getDoc(stepsRef); // 获取步数文档
 
     setTodayBloodPressure(bloodPressureDoc.exists() ? bloodPressureDoc.data().value : 'Not measured today');
     setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 'Not measured today');
+    setTodaySteps(stepsDoc.exists() ? stepsDoc.data().value : 'No steps recorded today'); // 设置步数状态
     setRemainingTasks(0); // Default remaining tasks to 0, can be adjusted based on actual data
   };
 
@@ -68,6 +73,33 @@ const DataScreen = () => {
   const handleUpdateClick = (type) => {
     setUpdateType(type);
     setModalVisible(true);
+  };
+
+  const handleDeviceClick = () => {
+    Alert.alert(
+      "Connect to Smart Tracker",
+      "Do you want to connect to the smart tracker?",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("No Pressed"),
+          style: "cancel"
+        },
+        {
+          text: "Yes", onPress: async () => {
+            if (user) {
+              const steps = await getMockSteps();
+              const uid = user.uid;
+              const today = new Date();
+              const timestamp = today.toISOString().split('T')[0];
+              const stepsRef = doc(firestore, 'steps', `${uid}_${timestamp}`);
+              await setDoc(stepsRef, { uid, value: steps, timestamp: new Date() }, { merge: true });
+              fetchTodayValues(user);
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -102,13 +134,18 @@ const DataScreen = () => {
               <Text style={styles.dataLabel}>Remaining Tasks: </Text>
               <Text style={styles.dataValue}>{remainingTasks}</Text>
             </View>
+            <View style={styles.dataContentRow}>
+              <View style={[styles.circle, styles.greenCircle]} />
+              <Text style={styles.dataLabel}>Today's Steps: </Text>
+              <Text style={styles.dataValue}>{todaySteps}</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.stepsContainer}>
           <View style={styles.stepsHeader}>
             <Text style={styles.sectionTitle}>Recent Steps</Text>
-            <Button title="Device" onPress={() => {}} />
+            <Button title="Device" onPress={handleDeviceClick} />
           </View>
           <View style={styles.chartPlaceholder}>
             <Text style={styles.chartText}>CHART</Text>
@@ -227,6 +264,9 @@ const styles = StyleSheet.create({
   },
   blueCircle: {
     backgroundColor: 'blue',
+  },
+  greenCircle: {
+    backgroundColor: 'green',
   },
   stepsContainer: {
     width: '100%',
