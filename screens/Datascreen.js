@@ -1,21 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
-import { getMockSteps } from '../apis/stepApi';
+import { getMockSteps } from '../apis/stepApi'; // 更新引用路径
+import SimpleDonutChart from '../charts/SimpleDonutChart';
+import SugarChart from '../charts/SugarChart';
+import { fetchTasks } from './TaskListScreen'; // 导入 fetchTasks 函数
+
+const CustomButton = ({ title, onPress, style }) => (
+  <TouchableOpacity style={[styles.customButton, style]} onPress={onPress}>
+    <Text style={[styles.customButtonText, style === styles.cancelButton && styles.cancelButtonText]}>{title}</Text>
+  </TouchableOpacity>
+);
+
+const UnitInput = ({ value, onChangeText, placeholder, unit }) => {
+  const handleChange = (text) => {
+    const numericValue = text.replace(/[^0-9.]/g, '');
+    onChangeText(numericValue ? `${numericValue}` : '');
+  };
+
+  return (
+    <View style={styles.unitInputContainer}>
+      <TextInput
+        style={styles.unitInput}
+        value={value}
+        onChangeText={handleChange}
+        keyboardType="numeric"
+        placeholder={placeholder}
+        placeholderTextColor="black"
+      />
+      <Text style={styles.unitText}>{unit}</Text>
+    </View>
+  );
+};
 
 const DataScreen = () => {
   const [user, setUser] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [updateType, setUpdateType] = useState(null);
-  const [bloodPressure, setBloodPressure] = useState('');
-  const [bloodSugar, setBloodSugar] = useState('');
-  const [todayBloodPressure, setTodayBloodPressure] = useState(null);
+  const [systolicPressure, setSystolicPressure] = useState('');
+  const [diastolicPressure, setDiastolicPressure] = useState('');
+  const [bloodSugar, setBloodSugar] = useState('0.0');
+  const [todayBloodPressure, setTodayBloodPressure] = useState({ systolic: '', diastolic: '' });
   const [todayBloodSugar, setTodayBloodSugar] = useState(null);
+  const [tasks, setTasks] = useState({ todo: [], done: [] });
   const [remainingTasks, setRemainingTasks] = useState(0);
-  const [todaySteps, setTodaySteps] = useState(null);
+  const [doneCount, setDoneCount] = useState(0);
+  const [todaySteps, setTodaySteps] = useState(0); // Default to 0 steps
   const auth = getAuth();
   const firestore = getFirestore();
   const { role } = useAuth(); // 获取用户角色
@@ -25,6 +58,7 @@ const DataScreen = () => {
       setUser(user);
       if (user) {
         fetchTodayValues(user);
+        fetchTasks(firestore, user.uid, setTasks, setRemainingTasks, setDoneCount);
       }
     });
 
@@ -35,7 +69,7 @@ const DataScreen = () => {
     const uid = user.uid;
     const today = new Date();
     const timestamp = today.toISOString().split('T')[0];
-    
+
     const bloodPressureRef = doc(firestore, 'blood pressure', `${uid}_${timestamp}`);
     const bloodSugarRef = doc(firestore, 'blood sugar', `${uid}_${timestamp}`);
     const stepsRef = doc(firestore, 'steps', `${uid}_${timestamp}`); // 新增步数文档
@@ -44,10 +78,17 @@ const DataScreen = () => {
     const bloodSugarDoc = await getDoc(bloodSugarRef);
     const stepsDoc = await getDoc(stepsRef); // 获取步数文档
 
-    setTodayBloodPressure(bloodPressureDoc.exists() ? bloodPressureDoc.data().value : 'Not measured today');
+    if (bloodPressureDoc.exists()) {
+      setTodayBloodPressure({
+        systolic: bloodPressureDoc.data().systolic,
+        diastolic: bloodPressureDoc.data().diastolic
+      });
+    } else {
+      setTodayBloodPressure({ systolic: 'Not', diastolic: 'measured today' });
+    }
+
     setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 'Not measured today');
-    setTodaySteps(stepsDoc.exists() ? stepsDoc.data().value : 'No steps recorded today'); // 设置步数状态
-    setRemainingTasks(0); // Default remaining tasks to 0, can be adjusted based on actual data
+    setTodaySteps(stepsDoc.exists() ? stepsDoc.data().value : 0); // 设置步数状态，默认值为0
   };
 
   const handleSaveValues = async () => {
@@ -58,7 +99,7 @@ const DataScreen = () => {
 
       if (updateType === 'blood pressure') {
         const bloodPressureRef = doc(firestore, 'blood pressure', `${uid}_${timestamp}`);
-        await setDoc(bloodPressureRef, { uid, value: bloodPressure, timestamp: new Date() }, { merge: true });
+        await setDoc(bloodPressureRef, { uid, systolic: systolicPressure, diastolic: diastolicPressure, timestamp: new Date() }, { merge: true });
       } else if (updateType === 'blood sugar') {
         const bloodSugarRef = doc(firestore, 'blood sugar', `${uid}_${timestamp}`);
         await setDoc(bloodSugarRef, { uid, value: bloodSugar, timestamp: new Date() }, { merge: true });
@@ -67,6 +108,7 @@ const DataScreen = () => {
       setModalVisible(false);
       setUpdateType(null); // Reset update type
       fetchTodayValues(user);
+      fetchTasks(firestore, user.uid, setTasks, setRemainingTasks, setDoneCount); // 更新未完成任务数
     }
   };
 
@@ -109,8 +151,8 @@ const DataScreen = () => {
         <Text style={styles.dateText}>Today {new Date().toISOString().split('T')[0]}</Text>
 
         <View style={styles.scoreContainer}>
-          <Text style={styles.scoreText}>92</Text>
-          <Text style={styles.scoreLabel}>Score</Text>
+          <Text style={styles.scoreText}>{remainingTasks}</Text>
+          <Text style={styles.scoreLabel}>ToDo</Text>
         </View>
 
         <View style={styles.healthDataContainer}>
@@ -118,26 +160,21 @@ const DataScreen = () => {
             <Text style={styles.sectionTitle}>Today's Health</Text>
             {role === 'parent' && <Button title="Update" onPress={() => handleUpdateClick('select')} />}
           </View>
-          <View style={styles.dataBox}>
-            <View style={styles.dataContentRow}>
-              <View style={styles.circle} />
-              <Text style={styles.dataLabel}>Blood Pressure: </Text>
-              <Text style={styles.dataValue}>{todayBloodPressure}</Text>
+          <View style={styles.dataBoxContainer}>
+            <View style={styles.dataBox}>
+              <Text style={styles.dataBoxTitle}>Blood Pressure</Text>
+              <View style={styles.dataBoxValueContainer}>
+                <Text style={styles.dataBoxValue}>{`${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
+                <Text style={styles.dataBoxUnit}> mmHg</Text>
+              </View>
             </View>
-            <View style={styles.dataContentRow}>
-              <View style={[styles.circle, styles.grayCircle]} />
-              <Text style={styles.dataLabel}>Blood Sugar: </Text>
-              <Text style={styles.dataValue}>{todayBloodSugar}</Text>
-            </View>
-            <View style={styles.dataContentRow}>
-              <View style={[styles.circle, styles.blueCircle]} />
-              <Text style={styles.dataLabel}>Remaining Tasks: </Text>
-              <Text style={styles.dataValue}>{remainingTasks}</Text>
-            </View>
-            <View style={styles.dataContentRow}>
-              <View style={[styles.circle, styles.greenCircle]} />
-              <Text style={styles.dataLabel}>Today's Steps: </Text>
-              <Text style={styles.dataValue}>{todaySteps}</Text>
+            <View style={styles.dataBox}>
+              <Text style={styles.dataBoxTitle}>Blood Sugar</Text>
+              <SugarChart bloodSugar={parseFloat(todayBloodSugar)} />
+              <View style={styles.dataBoxValueContainer}>
+                <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar)}</Text>
+                <Text style={styles.dataBoxUnit}> mmol/L</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -147,13 +184,12 @@ const DataScreen = () => {
             <Text style={styles.sectionTitle}>Recent Steps</Text>
             <Button title="Device" onPress={handleDeviceClick} />
           </View>
-          <View style={styles.chartPlaceholder}>
-            <Text style={styles.chartText}>CHART</Text>
+          <View style={styles.stepsContent}>
           </View>
         </View>
-
+          <SimpleDonutChart steps={todaySteps} />
         <View style={styles.reportButtonContainer}>
-          <Button title="Generate Health Report" onPress={() => {}} />
+          <Button title="Health Report" onPress={() => {}} />
         </View>
       </ScrollView>
 
@@ -168,21 +204,39 @@ const DataScreen = () => {
         <View style={styles.modalContainer}>
           {updateType === 'select' ? (
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select Item to Update</Text>
-              <Button title="Update Blood Pressure" onPress={() => handleUpdateClick('blood pressure')} />
-              <Button title="Update Blood Sugar" onPress={() => handleUpdateClick('blood sugar')} />
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
+              <Text style={styles.modalTitle}>Select Data to Update</Text>
+              <CustomButton title="Blood Pressure" onPress={() => handleUpdateClick('blood pressure')} />
+              <CustomButton title="Blood Sugar" onPress={() => handleUpdateClick('blood sugar')} />
+              <CustomButton title="Cancel" onPress={() => setModalVisible(false)} style={styles.cancelButton} />
             </View>
           ) : (
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Update {updateType === 'blood pressure' ? 'Blood Pressure' : 'Blood Sugar'}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={`Enter ${updateType === 'blood pressure' ? 'Blood Pressure' : 'Blood Sugar'}`}
-                value={updateType === 'blood pressure' ? bloodPressure : bloodSugar}
-                onChangeText={updateType === 'blood pressure' ? setBloodPressure : setBloodSugar}
-                keyboardType="numeric"
-              />
+              {updateType === 'blood pressure' ? (
+                <>
+                  <Text>高压</Text>
+                  <UnitInput
+                    value={systolicPressure}
+                    onChangeText={setSystolicPressure}
+                    placeholder="Systolic Pressure"
+                    unit="mmHg"
+                  />
+                  <Text>低压</Text>
+                  <UnitInput
+                    value={diastolicPressure}
+                    onChangeText={setDiastolicPressure}
+                    placeholder="Diastolic Pressure"
+                    unit="mmHg"
+                  />
+                </>
+              ) : (
+                <UnitInput
+                  value={bloodSugar}
+                  onChangeText={setBloodSugar}
+                  placeholder="0.0"
+                  unit="mmol/L"
+                />
+              )}
               <Button title="Save" onPress={handleSaveValues} />
               <Button title="Cancel" onPress={() => setModalVisible(false)} />
             </View>
@@ -219,54 +273,49 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   scoreText: {
-    fontSize: 48,
+    fontSize: 40,
     color: 'red',
   },
   scoreLabel: {
-    fontSize: 18,
+    fontSize: 14,
   },
   healthDataContainer: {
     width: '100%',
     marginBottom: 16,
   },
+  dataBoxContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   dataBox: {
+    width: '45%',
     backgroundColor: '#d3d3d3',
     padding: 16,
     borderRadius: 8,
+    alignItems: 'center',
+  },
+  dataBoxTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  dataBoxValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  dataBoxValue: {
+    fontSize: 24, // Larger font size for the value
+    fontWeight: 'bold',
+  },
+  dataBoxUnit: {
+    fontSize: 16, // Smaller font size for the unit
+    color: 'gray', // Gray color for the unit
   },
   dataRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-  },
-  dataContentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  dataLabel: {
-    fontSize: 16,
-  },
-  dataValue: {
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  circle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'green',
-    marginRight: 8,
-  },
-  grayCircle: {
-    backgroundColor: 'gray',
-  },
-  blueCircle: {
-    backgroundColor: 'blue',
-  },
-  greenCircle: {
-    backgroundColor: 'green',
   },
   stepsContainer: {
     width: '100%',
@@ -277,16 +326,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  chartPlaceholder: {
-    backgroundColor: '#d3d3d3',
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  chartText: {
-    fontSize: 24,
   },
   reportButtonContainer: {
     width: '100%',
@@ -320,6 +359,46 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 8,
     borderRadius: 4,
+  },
+  unitInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 16,
+  },
+  unitInput: {
+    flex: 1,
+    height: 40,
+    borderColor: 'transparent',
+    color: 'black',
+    fontSize: 16,
+  },
+  unitText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: 'gray',
+  },
+  customButton: {
+    backgroundColor: '#1E90FF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  customButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+  },
+  cancelButtonText: {
+    color: 'black',
   },
 });
 

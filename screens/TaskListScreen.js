@@ -6,6 +6,34 @@ import { getAuth } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
 import { useAuth } from '../AuthContext'; // 确保正确导入 AuthContext
 
+export const fetchTasks = async (firestore, uid, setTasks, setTodoCount, setDoneCount) => {
+  try {
+    const today = new Date();
+    const timestamp = today.toISOString().split('T')[0];
+    const tasksRef = collection(firestore, 'tasks');
+    const q = query(tasksRef, where('uid', '==', uid), where('date', '==', timestamp));
+    const querySnapshot = await getDocs(q);
+    const todoTasks = [];
+    const doneTasks = [];
+
+    querySnapshot.forEach((doc) => {
+      const task = doc.data();
+      task.id = doc.id; // 保存文档 ID
+      if (task.isCompleted) {
+        doneTasks.push(task);
+      } else {
+        todoTasks.push(task);
+      }
+    });
+
+    setTasks({ todo: todoTasks, done: doneTasks });
+    setTodoCount(todoTasks.length); // 设置未完成任务数量
+    setDoneCount(doneTasks.length); // 设置已完成任务数量
+  } catch (error) {
+    console.error('Error fetching tasks: ', error.message);
+  }
+};
+
 const TaskListScreen = () => {
   const [tasks, setTasks] = useState({ todo: [], done: [] });
   const [todoCount, setTodoCount] = useState(0);
@@ -16,45 +44,14 @@ const TaskListScreen = () => {
   const firestore = getFirestore();
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(firestore, auth.currentUser.uid, setTasks, setTodoCount, setDoneCount);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      fetchTasks();
+      fetchTasks(firestore, auth.currentUser.uid, setTasks, setTodoCount, setDoneCount);
     }, [])
   );
-
-  const fetchTasks = async () => {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const today = new Date();
-        const timestamp = today.toISOString().split('T')[0];
-        const tasksRef = collection(firestore, 'tasks');
-        const q = query(tasksRef, where('uid', '==', user.uid), where('date', '==', timestamp));
-        const querySnapshot = await getDocs(q);
-        const todoTasks = [];
-        const doneTasks = [];
-
-        querySnapshot.forEach((doc) => {
-          const task = doc.data();
-          task.id = doc.id; // 保存文档 ID
-          if (task.isCompleted) {
-            doneTasks.push(task);
-          } else {
-            todoTasks.push(task);
-          }
-        });
-
-        setTasks({ todo: todoTasks, done: doneTasks });
-        setTodoCount(todoTasks.length); // 设置未完成任务数量
-        setDoneCount(doneTasks.length); // 设置已完成任务数量
-      }
-    } catch (error) {
-      console.error('Error fetching tasks: ', error.message);
-    }
-  };
 
   const handleManageTasks = () => {
     Alert.alert(
@@ -82,7 +79,7 @@ const TaskListScreen = () => {
     try {
       const taskRef = doc(firestore, 'tasks', task.id); // 使用正确的文档 ID
       await updateDoc(taskRef, { isCompleted: true });
-      fetchTasks(); // 更新任务列表
+      fetchTasks(firestore, auth.currentUser.uid, setTasks, setTodoCount, setDoneCount); // 更新任务列表
     } catch (error) {
       console.error('Error updating task: ', error.message);
     }
