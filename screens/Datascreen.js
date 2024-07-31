@@ -43,8 +43,8 @@ const DataScreen = () => {
   const [systolicPressure, setSystolicPressure] = useState('');
   const [diastolicPressure, setDiastolicPressure] = useState('');
   const [bloodSugar, setBloodSugar] = useState('0.0');
-  const [todayBloodPressure, setTodayBloodPressure] = useState({ systolic: '', diastolic: '' });
-  const [todayBloodSugar, setTodayBloodSugar] = useState(null);
+  const [todayBloodPressure, setTodayBloodPressure] = useState({ systolic: 0, diastolic: 0 });
+  const [todayBloodSugar, setTodayBloodSugar] = useState(0);
   const [tasks, setTasks] = useState({ todo: [], done: [] });
   const [remainingTasks, setRemainingTasks] = useState(0);
   const [doneCount, setDoneCount] = useState(0);
@@ -84,10 +84,10 @@ const DataScreen = () => {
         diastolic: bloodPressureDoc.data().diastolic
       });
     } else {
-      setTodayBloodPressure({ systolic: 'Not', diastolic: 'measured today' });
+      setTodayBloodPressure({ systolic: 0, diastolic: 0 });
     }
 
-    setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 'Not measured today');
+    setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 0);
     setTodaySteps(stepsDoc.exists() ? stepsDoc.data().value : 0); // 设置步数状态，默认值为0
   };
 
@@ -135,7 +135,17 @@ const DataScreen = () => {
               const today = new Date();
               const timestamp = today.toISOString().split('T')[0];
               const stepsRef = doc(firestore, 'steps', `${uid}_${timestamp}`);
-              await setDoc(stepsRef, { uid, value: steps, timestamp: new Date() }, { merge: true });
+  
+              const stepsDoc = await getDoc(stepsRef);
+  
+              if (stepsDoc.exists()) {
+                // 如果文档存在，则更新数据
+                await setDoc(stepsRef, { value: steps, timestamp: new Date() }, { merge: true });
+              } else {
+                // 如果文档不存在，则创建新文档
+                await setDoc(stepsRef, { uid, value: steps, timestamp: new Date() }, { merge: true });
+              }
+  
               fetchTodayValues(user);
             }
           }
@@ -143,6 +153,7 @@ const DataScreen = () => {
       ]
     );
   };
+  
 
   return (
     <View style={styles.container}>
@@ -155,16 +166,17 @@ const DataScreen = () => {
           <Text style={styles.scoreLabel}>ToDo</Text>
         </View>
 
-        <View style={styles.healthDataContainer}>
+        {role === 'parent'&&(
+          <View style={styles.healthDataContainer}>
           <View style={styles.dataRow}>
             <Text style={styles.sectionTitle}>Today's Health</Text>
-            {role === 'parent' && <Button title="Update" onPress={() => handleUpdateClick('select')} />}
+            <Button title="Update" onPress={() => handleUpdateClick('select')}color="#f4a261" />
           </View>
           <View style={styles.dataBoxContainer}>
             <View style={styles.dataBox}>
               <Text style={styles.dataBoxTitle}>Blood Pressure</Text>
               <View style={styles.dataBoxValueContainer}>
-                <Text style={styles.dataBoxValue}>{`${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
+                <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
                 <Text style={styles.dataBoxUnit}> mmHg</Text>
               </View>
             </View>
@@ -172,24 +184,25 @@ const DataScreen = () => {
               <Text style={styles.dataBoxTitle}>Blood Sugar</Text>
               <SugarChart bloodSugar={parseFloat(todayBloodSugar)} />
               <View style={styles.dataBoxValueContainer}>
-                <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar)}</Text>
+                <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar) === 0 ? '0.0' : parseFloat(todayBloodSugar)}</Text>
                 <Text style={styles.dataBoxUnit}> mmol/L</Text>
               </View>
             </View>
           </View>
-        </View>
+        </View>)}
 
-        <View style={styles.stepsContainer}>
+        {role === 'parent' && (
+          <View style={styles.stepsContainer}>
           <View style={styles.stepsHeader}>
             <Text style={styles.sectionTitle}>Recent Steps</Text>
-            <Button title="Device" onPress={handleDeviceClick} />
+             <Button title="Device" onPress={handleDeviceClick}color="#f4a261" />
           </View>
           <View style={styles.stepsContent}>
           </View>
-        </View>
           <SimpleDonutChart steps={todaySteps} />
+          </View>)}
         <View style={styles.reportButtonContainer}>
-          <Button title="Health Report" onPress={() => {}} />
+          <Button title="Health Report" onPress={() => {}} color="#f4a261"/>
         </View>
       </ScrollView>
 
@@ -237,8 +250,8 @@ const DataScreen = () => {
                   unit="mmol/L"
                 />
               )}
-              <Button title="Save" onPress={handleSaveValues} />
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
+              <CustomButton title="Save" onPress={handleSaveValues} />
+              <CustomButton title="Cancel" onPress={() => setModalVisible(false)} />
             </View>
           )}
         </View>
@@ -265,7 +278,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dateText: {
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 16,
   },
   scoreContainer: {
@@ -289,10 +302,12 @@ const styles = StyleSheet.create({
   },
   dataBox: {
     width: '45%',
-    backgroundColor: '#d3d3d3',
+    backgroundColor: 'white', // 修改背景颜色为白色
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
+    borderColor: '#d3d3d3', // 添加边框颜色
+    borderWidth: 1, // 添加边框宽度
   },
   dataBoxTitle: {
     fontSize: 16,
@@ -382,7 +397,7 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   customButton: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#f4a261',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

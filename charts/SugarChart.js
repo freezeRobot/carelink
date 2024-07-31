@@ -16,7 +16,11 @@ const SugarChart = ({ bloodSugar }) => {
   let text = '正常';
   let color = 'green';
 
-  if (bloodSugar < 4.4) {
+  if (bloodSugar === 0) {
+    endAngle = endAngleNormal;
+    text = '未更新';
+    color = 'gray';
+  } else if (bloodSugar < 4.4) {
     endAngle = endAngleLow;
     text = '偏低';
     color = 'yellow';
@@ -50,7 +54,7 @@ const SugarChart = ({ bloodSugar }) => {
         </Defs>
         <Path
           d={createArcPath(startAngle, endAngle, radius, center)}
-          stroke={color === 'yellow' ? 'yellow' : 'url(#grad)'}
+          stroke={color === 'yellow' ? 'yellow' : color === 'gray' ? 'gray' : 'url(#grad)'}
           strokeWidth={strokeWidth}
           fill="none"
         />
