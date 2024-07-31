@@ -7,6 +7,8 @@ import { useAuth } from '../AuthContext';
 import { getMockSteps } from '../apis/stepApi'; // 更新引用路径
 import SimpleDonutChart from '../charts/SimpleDonutChart';
 import SugarChart from '../charts/SugarChart';
+import ChildViewPressure from '../charts/ChildChartP';
+import ChildViewSugar from '../charts/ChildChartS';
 import { fetchTasks } from './TaskListScreen'; // 导入 fetchTasks 函数
 
 const CustomButton = ({ title, onPress, style }) => (
@@ -49,6 +51,9 @@ const DataScreen = () => {
   const [remainingTasks, setRemainingTasks] = useState(0);
   const [doneCount, setDoneCount] = useState(0);
   const [todaySteps, setTodaySteps] = useState(0); // Default to 0 steps
+  const [pastBloodPressureData, setPastBloodPressureData] = useState([]); // 新增状态存储过去的血压数据
+  const [pastBloodSugarData, setPastBloodSugarData] = useState([]); // 新增状态存储过去的血糖数据
+
   const auth = getAuth();
   const firestore = getFirestore();
   const { role } = useAuth(); // 获取用户角色
@@ -89,6 +94,32 @@ const DataScreen = () => {
 
     setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 0);
     setTodaySteps(stepsDoc.exists() ? stepsDoc.data().value : 0); // 设置步数状态，默认值为0
+
+  
+    const pastDaysData = await fetchPastDaysBloodPressure(uid, today);
+    setPastBloodPressureData(pastDaysData);
+  };
+
+  const fetchPastDaysBloodPressure = async (uid, currentDate) => {
+    const dates = [];
+    const data = [];
+    for (let i = -5; i <= 0; i++) {
+      const date = new Date(currentDate);
+      date.setDate(currentDate.getDate() + i);
+      dates.push(date.toISOString().split('T')[0]);
+    }
+
+    for (const date of dates) {
+      const ref = doc(firestore, 'blood pressure', `${uid}_${date}`);
+      const docSnap = await getDoc(ref);
+      if (docSnap.exists()) {
+        data.push({ date, systolic: docSnap.data().systolic, diastolic: docSnap.data().diastolic });
+      } else {
+        data.push({ date, systolic: 0, diastolic: 0 });
+      }
+    }
+
+    return data;
   };
 
   const handleSaveValues = async () => {
@@ -135,9 +166,9 @@ const DataScreen = () => {
               const today = new Date();
               const timestamp = today.toISOString().split('T')[0];
               const stepsRef = doc(firestore, 'steps', `${uid}_${timestamp}`);
-  
+
               const stepsDoc = await getDoc(stepsRef);
-  
+
               if (stepsDoc.exists()) {
                 // 如果文档存在，则更新数据
                 await setDoc(stepsRef, { value: steps, timestamp: new Date() }, { merge: true });
@@ -145,7 +176,7 @@ const DataScreen = () => {
                 // 如果文档不存在，则创建新文档
                 await setDoc(stepsRef, { uid, value: steps, timestamp: new Date() }, { merge: true });
               }
-  
+
               fetchTodayValues(user);
             }
           }
@@ -153,7 +184,6 @@ const DataScreen = () => {
       ]
     );
   };
-  
 
   return (
     <View style={styles.container}>
@@ -165,45 +195,53 @@ const DataScreen = () => {
           <Text style={styles.scoreText}>{remainingTasks}</Text>
           <Text style={styles.scoreLabel}>ToDo</Text>
         </View>
+        {role === 'child' && (
+          <ChildViewPressure data={pastBloodPressureData} /> // 将数据传递给 ChildViewPressure 组件
+        )}
 
         {role === 'parent'&&(
           <View style={styles.healthDataContainer}>
-          <View style={styles.dataRow}>
-            <Text style={styles.sectionTitle}>Today's Health</Text>
-            <Button title="Update" onPress={() => handleUpdateClick('select')}color="#f4a261" />
-          </View>
-          <View style={styles.dataBoxContainer}>
-            <View style={styles.dataBox}>
-              <Text style={styles.dataBoxTitle}>Blood Pressure</Text>
-              <View style={styles.dataBoxValueContainer}>
-                <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
-                <Text style={styles.dataBoxUnit}> mmHg</Text>
+            <View style={styles.dataRow}>
+              <Text style={styles.sectionTitle}>Today's Health</Text>
+              <Button title="Update" onPress={() => handleUpdateClick('select')} color="#f4a261" />
+            </View>
+            <View style={styles.dataBoxContainer}>
+              <View style={styles.dataBox}>
+                <Text style={styles.dataBoxTitle}>Blood Pressure</Text>
+                <View style={styles.dataBoxValueContainer}>
+                  <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
+                  <Text style={styles.dataBoxUnit}> mmHg</Text>
+                </View>
+              </View>
+              <View style={styles.dataBox}>
+                <Text style={styles.dataBoxTitle}>Blood Sugar</Text>
+                <SugarChart bloodSugar={parseFloat(todayBloodSugar)} />
+                <View style={styles.dataBoxValueContainer}>
+                  <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar) === 0 ? '0.0' : parseFloat(todayBloodSugar)}</Text>
+                  <Text style={styles.dataBoxUnit}> mmol/L</Text>
+                </View>
               </View>
             </View>
-            <View style={styles.dataBox}>
-              <Text style={styles.dataBoxTitle}>Blood Sugar</Text>
-              <SugarChart bloodSugar={parseFloat(todayBloodSugar)} />
-              <View style={styles.dataBoxValueContainer}>
-                <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar) === 0 ? '0.0' : parseFloat(todayBloodSugar)}</Text>
-                <Text style={styles.dataBoxUnit}> mmol/L</Text>
-              </View>
-            </View>
           </View>
-        </View>)}
+        )}
 
         {role === 'parent' && (
           <View style={styles.stepsContainer}>
-          <View style={styles.stepsHeader}>
-            <Text style={styles.sectionTitle}>Recent Steps</Text>
-             <Button title="Device" onPress={handleDeviceClick}color="#f4a261" />
+            <View style={styles.stepsHeader}>
+              <Text style={styles.sectionTitle}>Recent Steps</Text>
+              <Button title="Device" onPress={handleDeviceClick} color="#f4a261" />
+            </View>
+            <View style={styles.stepsContent}>
+              <SimpleDonutChart steps={todaySteps} />
+            </View>
           </View>
-          <View style={styles.stepsContent}>
-          </View>
-          <SimpleDonutChart steps={todaySteps} />
-          </View>)}
+        )}
+
         <View style={styles.reportButtonContainer}>
-          <Button title="Health Report" onPress={() => {}} color="#f4a261"/>
+          <Button title="Health Report" onPress={() => {}} color="#f4a261" />
         </View>
+
+    
       </ScrollView>
 
       <BottomNavigation />
