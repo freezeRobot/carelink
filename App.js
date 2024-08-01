@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -8,7 +8,14 @@ import DataScreen from './screens/Datascreen';
 import TaskListScreen from './screens/TaskListScreen';
 import LogoutScreen from './screens/LogoutScreen';
 import CreateTaskScreen from './screens/CreateTaskScreen';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fab } from '@fortawesome/free-brands-svg-icons';
+import { faChartColumn } from '@fortawesome/free-solid-svg-icons/faChartColumn';
+import { faList } from '@fortawesome/free-solid-svg-icons/faList';
+import { faHouse } from '@fortawesome/free-solid-svg-icons/faHouse';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
+library.add(fab, faChartColumn,faList, faHouse);
 const Stack = createStackNavigator();
 
 const App = () => {

@@ -9,6 +9,7 @@ import SimpleDonutChart from '../charts/SimpleDonutChart';
 import SugarChart from '../charts/SugarChart';
 import ChildViewPressure from '../charts/ChildChartP';
 import ChildViewSugar from '../charts/ChildChartS';
+import LineP from '../charts/LineP';//血压线
 import { fetchTasks } from './TaskListScreen'; // 导入 fetchTasks 函数
 
 const CustomButton = ({ title, onPress, style }) => (
@@ -53,6 +54,7 @@ const DataScreen = () => {
   const [todaySteps, setTodaySteps] = useState(0); // Default to 0 steps
   const [pastBloodPressureData, setPastBloodPressureData] = useState([]); // 新增状态存储过去的血压数据
   const [pastBloodSugarData, setPastBloodSugarData] = useState([]); // 新增状态存储过去的血糖数据
+  const [currentView, setCurrentView] = useState('pressure'); // 新增状态来管理当前显示的视图
 
   const auth = getAuth();
   const firestore = getFirestore();
@@ -95,9 +97,11 @@ const DataScreen = () => {
     setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 0);
     setTodaySteps(stepsDoc.exists() ? stepsDoc.data().value : 0); // 设置步数状态，默认值为0
 
-  
-    const pastDaysData = await fetchPastDaysBloodPressure(uid, today);
-    setPastBloodPressureData(pastDaysData);
+    const pastDaysBloodPressureData = await fetchPastDaysBloodPressure(uid, today);
+    setPastBloodPressureData(pastDaysBloodPressureData);
+
+    const pastDaysBloodSugarData = await fetchPastDaysBloodSugar(uid, today);
+    setPastBloodSugarData(pastDaysBloodSugarData);
   };
 
   const fetchPastDaysBloodPressure = async (uid, currentDate) => {
@@ -116,6 +120,28 @@ const DataScreen = () => {
         data.push({ date, systolic: docSnap.data().systolic, diastolic: docSnap.data().diastolic });
       } else {
         data.push({ date, systolic: 0, diastolic: 0 });
+      }
+    }
+
+    return data;
+  };
+
+  const fetchPastDaysBloodSugar = async (uid, currentDate) => {
+    const dates = [];
+    const data = [];
+    for (let i = -5; i <= 0; i++) {
+      const date = new Date(currentDate);
+      date.setDate(currentDate.getDate() + i);
+      dates.push(date.toISOString().split('T')[0]);
+    }
+
+    for (const date of dates) {
+      const ref = doc(firestore, 'blood sugar', `${uid}_${date}`);
+      const docSnap = await getDoc(ref);
+      if (docSnap.exists()) {
+        data.push({ date, bloodSugar: docSnap.data().value });
+      } else {
+        data.push({ date, bloodSugar: 0 });
       }
     }
 
@@ -185,44 +211,57 @@ const DataScreen = () => {
     );
   };
 
+  const toggleView = () => {
+    setCurrentView((prevView) => (prevView === 'pressure' ? 'sugar' : 'pressure'));
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>My Healthy Data</Text>
         <Text style={styles.dateText}>Today {new Date().toISOString().split('T')[0]}</Text>
 
-        <View style={styles.scoreContainer}>
-          <Text style={styles.scoreText}>{remainingTasks}</Text>
-          <Text style={styles.scoreLabel}>ToDo</Text>
-        </View>
         {role === 'child' && (
-          <ChildViewPressure data={pastBloodPressureData} /> // 将数据传递给 ChildViewPressure 组件
+          <View style={styles.chartContainer}>
+            {currentView === 'pressure' ? <ChildViewPressure data={pastBloodPressureData} /> : <ChildViewSugar data={pastBloodSugarData} />}
+            <CustomButton title={`Switch to ${currentView === 'pressure' ? 'Blood Sugar' : 'Blood Pressure'}`} onPress={toggleView} />
+          </View>
         )}
 
-        {role === 'parent'&&(
-          <View style={styles.healthDataContainer}>
-            <View style={styles.dataRow}>
-              <Text style={styles.sectionTitle}>Today's Health</Text>
-              <Button title="Update" onPress={() => handleUpdateClick('select')} color="#f4a261" />
+        {role === 'parent' && (
+          <>
+            <View style={styles.scoreContainer}>
+              <Text style={styles.scoreText}>{remainingTasks}</Text>
+              <Text style={styles.scoreLabel}>ToDo</Text>
             </View>
-            <View style={styles.dataBoxContainer}>
-              <View style={styles.dataBox}>
-                <Text style={styles.dataBoxTitle}>Blood Pressure</Text>
-                <View style={styles.dataBoxValueContainer}>
-                  <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
-                  <Text style={styles.dataBoxUnit}> mmHg</Text>
+            <View style={styles.healthDataContainer}>
+              <View style={styles.dataRow}>
+                <Text style={styles.sectionTitle}>Today's Health</Text>
+                <Button title="Update" onPress={() => handleUpdateClick('select')} color="#f4a261" />
+              </View>
+              <View style={styles.dataBoxContainer}>
+                <View style={styles.dataBox}>
+                  <Text style={styles.dataBoxTitle2}>Blood Pressure</Text>
+                  <LineP systolic={todayBloodPressure.systolic} diastolic={todayBloodPressure.diastolic} />
+                  <View style={styles.dataBoxValueContainer}>
+                    <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
+                    <Text style={styles.dataBoxUnit}> mmHg</Text>
+                  </View>
+                  <Text style={styles.referenceText}>高压正常值(90-140）</Text>
+                  <Text style={styles.referenceText}>低压正常值(60-90）</Text>
+                </View>
+                <View style={styles.dataBox}>
+                  <Text style={styles.dataBoxTitle1}>Blood Sugar</Text>
+                  <SugarChart bloodSugar={parseFloat(todayBloodSugar)} />
+                  <View style={styles.dataBoxValueContainer}>
+                    <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar) === 0 ? '0.0' : parseFloat(todayBloodSugar)}</Text>
+                    <Text style={styles.dataBoxUnit}> mmol/L</Text>
+                  </View>
+                  <Text style={styles.referenceText}>正常值(4.4-7.0)</Text>
                 </View>
               </View>
-              <View style={styles.dataBox}>
-                <Text style={styles.dataBoxTitle}>Blood Sugar</Text>
-                <SugarChart bloodSugar={parseFloat(todayBloodSugar)} />
-                <View style={styles.dataBoxValueContainer}>
-                  <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar) === 0 ? '0.0' : parseFloat(todayBloodSugar)}</Text>
-                  <Text style={styles.dataBoxUnit}> mmol/L</Text>
-                </View>
-              </View>
             </View>
-          </View>
+          </>
         )}
 
         {role === 'parent' && (
@@ -241,7 +280,6 @@ const DataScreen = () => {
           <Button title="Health Report" onPress={() => {}} color="#f4a261" />
         </View>
 
-    
       </ScrollView>
 
       <BottomNavigation />
@@ -347,10 +385,15 @@ const styles = StyleSheet.create({
     borderColor: '#d3d3d3', // 添加边框颜色
     borderWidth: 1, // 添加边框宽度
   },
-  dataBoxTitle: {
+  dataBoxTitle1: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
+  },
+  dataBoxTitle2: {
+    fontSize: 16,
+    fontWeight: 'bold',
+
   },
   dataBoxValueContainer: {
     flexDirection: 'row',
@@ -363,6 +406,10 @@ const styles = StyleSheet.create({
   dataBoxUnit: {
     fontSize: 16, // Smaller font size for the unit
     color: 'gray', // Gray color for the unit
+  },
+  referenceText: {
+    fontSize: 12,
+    color: 'gray',
   },
   dataRow: {
     flexDirection: 'row',
@@ -452,6 +499,11 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: 'black',
+  },
+  chartContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 16,
   },
 });
 

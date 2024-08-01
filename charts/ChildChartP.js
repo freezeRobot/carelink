@@ -14,14 +14,14 @@ const ChildViewPressure = ({ data }) => {
     {
       value: item.systolic,
       label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
-      spacing: 2,
-      labelWidth: 40,
+      spacing: 1,
+      labelWidth: 25,
       labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }, // 当天日期文字颜色变成绿色
-      frontColor: '#177AD5',
+      frontColor: '#ED6665',
     },
     {
       value: item.diastolic,
-      frontColor: '#ED6665',
+      frontColor: '#177AD5',
     }
   ]);
 
@@ -84,9 +84,9 @@ const ChildViewPressure = ({ data }) => {
       {renderTitle()}
       <BarChart
         data={barData}
-        barWidth={10}
-        initialSpacing={10}
-        spacing={24}
+        barWidth={8}
+        initialSpacing={20}
+        spacing={40}
         roundedTop
         roundedBottom
         hideRules={false}
@@ -97,7 +97,7 @@ const ChildViewPressure = ({ data }) => {
         noOfSections={4}
         maxValue={180}
         height={100}
-        width={300}
+        width={280}
       />
     </View>
   );

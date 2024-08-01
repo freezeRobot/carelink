@@ -12,8 +12,8 @@ const ChildViewSugar = ({ data }) => {
   const barData = recentData.map((item) => ({
     value: item.bloodSugar,
     label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
-    spacing: 10,
-    labelWidth: 40,
+    spacing: 46,
+    labelWidth: 15,
     labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }, // 当天日期文字颜色变成绿色
     frontColor: '#FFA500', // 使用橙色来表示血糖
   }));
@@ -29,6 +29,25 @@ const ChildViewSugar = ({ data }) => {
           }}>
           Blood Sugar Chart
         </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            backgroundColor: 'transparent',
+          }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 10 }}>
+            <View
+              style={{
+                height: 6,
+                width: 6,
+                borderRadius: 6,
+                backgroundColor: '#FFA500',
+                marginRight: 8,
+              }}
+            />
+            <Text style={{ color: 'grey' ,fontSize: 12}}>Blood Sugar</Text>
+          </View>
+        </View>
       </View>
     );
   };
@@ -46,9 +65,9 @@ const ChildViewSugar = ({ data }) => {
       {renderTitle()}
       <BarChart
         data={barData}
-        barWidth={20}
-        initialSpacing={10}
-        spacing={30}
+        barWidth={10}
+        initialSpacing={20} 
+        spacing={40} 
         roundedTop
         roundedBottom
         hideRules={false}
@@ -57,9 +76,9 @@ const ChildViewSugar = ({ data }) => {
         yAxisTextStyle={{ color: 'gray' }}
         xAxisTextStyle={{ color: 'gray' }}
         noOfSections={4}
-        maxValue={200}
-        height={150}
-        width={300}
+        maxValue={12}
+        height={100}
+        width={270}
       />
     </View>
   );

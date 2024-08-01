@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getAuth, signOut } from 'firebase/auth';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 const BottomNavigation = () => {
   const navigation = useNavigation();
@@ -23,29 +24,41 @@ const BottomNavigation = () => {
     }
   };
 
-  const getButtonStyle = (label) => {
-    return [
-      styles.footerButton,
-      route.name === label && styles.activeFooterButton,
-    ];
+  const getIconColor = (label) => {
+    return route.name === label ? 'white' : 'rgba(255, 255, 255, 0.6)';
   };
 
   return (
     <View style={styles.footer}>
       <TouchableOpacity
-        style={getButtonStyle('DataScreen')}
+        style={styles.footerButton}
         onPress={() => navigateTo('DataScreen')}
       >
-        <Text style={styles.footerButtonText}>Data</Text>
+        <FontAwesomeIcon 
+          icon="fa-solid fa-chart-column"
+          size={30}
+          color={getIconColor('DataScreen')}
+        />
       </TouchableOpacity>
       <TouchableOpacity
-        style={getButtonStyle('TaskListScreen')}
+        style={styles.footerButton}
         onPress={() => navigateTo('TaskListScreen')}
       >
-        <Text style={styles.footerButtonText}>Tasks</Text>
+        <FontAwesomeIcon 
+          icon="fa-solid fa-list"
+          size={30}
+          color={getIconColor('TaskListScreen')}
+        />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.footerButton} onPress={handleLogout}>
-        <Text style={styles.footerButtonText}>Logout</Text>
+      <TouchableOpacity 
+        style={styles.footerButton}
+        onPress={handleLogout}
+      >
+        <FontAwesomeIcon 
+          icon="fa-solid fa-house" 
+          size={30}
+          color={'rgba(255, 255, 255, 0.6)'}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -56,7 +69,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 16,
-    backgroundColor: '#d3d3d3',
+    backgroundColor: '#f4a261', // 浅橙色背景
     position: 'absolute',
     bottom: 0,
     width: '100%',
@@ -66,14 +79,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 8,
     marginHorizontal: 4,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-  },
-  activeFooterButton: {
-    backgroundColor: '#aaa', // 当前活动界面按钮的背景颜色
-  },
-  footerButtonText: {
-    fontSize: 16,
   },
 });
 
