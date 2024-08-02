@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
 const ChildViewPressure = ({ data }) => {
@@ -12,76 +12,46 @@ const ChildViewPressure = ({ data }) => {
   // 生成图表数据
   const barData = recentData.flatMap((item) => [
     {
-      value: item.systolic,
+      value: item.diastolic,
       label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
       spacing: 1,
       labelWidth: 25,
       labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }, // 当天日期文字颜色变成绿色
-      frontColor: '#ED6665',
+      frontColor: '#177AD5',
     },
     {
-      value: item.diastolic,
-      frontColor: '#177AD5',
+      value: item.systolic,
+      frontColor: '#ED6665',
     }
   ]);
 
   const renderTitle = () => {
     return (
       <View style={{ marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text
-          style={{
-            color: 'black',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}>
-          Blood Pressure Chart
-        </Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
-            backgroundColor: 'transparent',
-          }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 10 }}>
-            <View
-              style={{
-                height: 6,
-                width: 6,
-                borderRadius: 6,
-                backgroundColor: '#177AD5',
-                marginRight: 8,
-              }}
-            />
-            <Text style={{ color: 'grey' ,fontSize: 12}}>Systolic</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 10 }}>
-            <View
-              style={{
-                height: 6,
-                width: 6,
-                borderRadius: 6,
-                backgroundColor: '#ED6665',
-                marginRight: 8,
-              }}
-            />
-            <Text style={{ color: 'grey' ,fontSize: 12 }}>Diastolic</Text>
-          </View>
+        <Text style={styles.titleText}>Blood Pressure Chart</Text>
+        <View style={styles.referenceContainer}>
+          <View style={styles.diastolicColor} />
+          <Text style={styles.referenceText}>Diastolic</Text>
+          <View style={styles.systolicColor} />
+          <Text style={styles.referenceText}>Systolic</Text>
         </View>
       </View>
     );
   };
 
+  const renderReferenceText = () => {
+    return (
+      <View style={styles.referenceRow}>
+        <Text style={styles.referenceText}>低压正常值(60-90）</Text>
+        <Text style={styles.referenceText}>高压正常值(90-140）</Text>
+      </View>
+    );
+  };
+
   return (
-    <View
-      style={{
-        backgroundColor: '#fff',
-        padding: 10,
-        borderRadius: 10,
-        marginVertical: 10,
-        width: '90%',
-        alignSelf: 'center',
-      }}>
+    <View style={styles.chartContainer}>
       {renderTitle()}
+      {renderReferenceText()}
       <BarChart
         data={barData}
         barWidth={8}
@@ -102,5 +72,51 @@ const ChildViewPressure = ({ data }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  chartContainer: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 10,
+    width: '90%',
+    alignSelf: 'center',
+  },
+  titleText: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  referenceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  diastolicColor: {
+    height: 6,
+    width: 6,
+    borderRadius: 6,
+    backgroundColor: '#177AD5',
+    marginRight: 8,
+  },
+  systolicColor: {
+    height: 6,
+    width: 6,
+    borderRadius: 6,
+    backgroundColor: '#ED6665',
+    marginRight: 8,
+    marginLeft: 10,
+  },
+  referenceText: {
+    fontSize: 12,
+    color: 'gray',
+  },
+  referenceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom:5,
+    paddingHorizontal: 55, // 添加左右内边距以减少文本之间的间隔
+  },
+});
 
 export default ChildViewPressure;

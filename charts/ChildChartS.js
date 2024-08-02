@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
 const ChildViewSugar = ({ data }) => {
@@ -21,53 +21,23 @@ const ChildViewSugar = ({ data }) => {
   const renderTitle = () => {
     return (
       <View style={{ marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text
-          style={{
-            color: 'black',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}>
-          Blood Sugar Chart
-        </Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
-            backgroundColor: 'transparent',
-          }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 10 }}>
-            <View
-              style={{
-                height: 6,
-                width: 6,
-                borderRadius: 6,
-                backgroundColor: '#FFA500',
-                marginRight: 8,
-              }}
-            />
-            <Text style={{ color: 'grey' ,fontSize: 12}}>Blood Sugar</Text>
-          </View>
+        <Text style={styles.titleText}>Blood Sugar Chart</Text>
+        <View style={styles.referenceContainer}>
+          <View style={styles.legendColor} />
+          <Text style={styles.referenceText}>正常值(4.4-7.0)</Text>
         </View>
       </View>
     );
   };
 
   return (
-    <View
-      style={{
-        backgroundColor: '#fff',
-        padding: 10,
-        borderRadius: 10,
-        marginVertical: 10,
-        width: '90%',
-        alignSelf: 'center',
-      }}>
+    <View style={styles.chartContainer}>
       {renderTitle()}
       <BarChart
         data={barData}
         barWidth={10}
-        initialSpacing={20} 
-        spacing={40} 
+        initialSpacing={20}
+        spacing={40}
         roundedTop
         roundedBottom
         hideRules={false}
@@ -83,5 +53,37 @@ const ChildViewSugar = ({ data }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  chartContainer: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 10,
+    width: '90%',
+    alignSelf: 'center',
+  },
+  titleText: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  referenceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  legendColor: {
+    height: 6,
+    width: 6,
+    borderRadius: 6,
+    backgroundColor: '#FFA500',
+    marginRight: 8,
+  },
+  referenceText: {
+    fontSize: 12,
+    color: 'gray',
+  },
+});
 
 export default ChildViewSugar;
