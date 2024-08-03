@@ -281,7 +281,7 @@ const DataScreen = () => {
                   <Text style={styles.dataBoxTitle2}>Blood Pressure</Text>
                   <LineP systolic={todayBloodPressure.systolic} diastolic={todayBloodPressure.diastolic} />
                   <View style={styles.dataBoxValueContainer}>
-                    <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : ${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}}</Text>
+                  <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
                     <Text style={styles.dataBoxUnit}> mmHg</Text>
                   </View>
                   <Text style={styles.referenceText}>高压正常值(90-140）</Text>
