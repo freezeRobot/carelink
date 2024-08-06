@@ -29,7 +29,31 @@ const LogScreen = () => {
     return () => unsubscribe();
   }, [navigation, setUser, setRole]);
 
+  const validateEmail = (email) => {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+  };
+
   const handleAuthentication = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter username and password');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      Alert.alert('Error', 'Invalid email format');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+    if (isLogin && !tempRole) {
+      Alert.alert('Error', 'Please select a role before logging in');
+      return;
+    }
+
     try {
       if (isLogin) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -56,6 +80,22 @@ const LogScreen = () => {
         setPassword('');
       }
     } catch (error) {
+      let errorMessage = 'Authentication error';
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'User does not exist';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Email already in use';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak';
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid credentials provided';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many requests, please try again later';
+      }
       console.error('Authentication error:', error.message);
       Alert.alert('Authentication error', error.message);
     }
