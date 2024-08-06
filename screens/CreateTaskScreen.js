@@ -10,6 +10,7 @@ const CreateTaskScreen = () => {
   const [taskType, setTaskType] = useState('饮食');
   const [taskDescription, setTaskDescription] = useState('');
   const [targetTime, setTargetTime] = useState('');
+  const [taskPeriod, setTaskPeriod] = useState('早上'); // 新增状态
   const navigation = useNavigation();
   const firestore = getFirestore();
   const auth = getAuth();
@@ -30,6 +31,7 @@ const CreateTaskScreen = () => {
           taskType,
           taskDescription,
           targetTime,
+          taskPeriod, // 新增的时间段属性
           isCompleted: false,
           createdAt: new Date(),
         });
@@ -61,6 +63,26 @@ const CreateTaskScreen = () => {
           <Picker.Item label="医疗" value="医疗" />
         </Picker>
       </View>
+      <View style={styles.row}>
+        <View style={styles.halfPickerContainer}>
+          <Picker
+            selectedValue={taskPeriod}
+            style={styles.picker}
+            onValueChange={(itemValue) => setTaskPeriod(itemValue)}
+          >
+            <Picker.Item label="早上" value="早上" />
+            <Picker.Item label="下午" value="下午" />
+            <Picker.Item label="晚上" value="晚上" />
+          </Picker>
+        </View>
+        <TextInput
+          style={styles.halfInput}
+          placeholder="00:00"
+          value={targetTime}
+          onChangeText={setTargetTime}
+          keyboardType="numeric"
+        />
+      </View>
       <TextInput
         style={styles.textArea}
         placeholder="描述"
@@ -68,13 +90,7 @@ const CreateTaskScreen = () => {
         onChangeText={setTaskDescription}
         multiline={true}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="目标时间"
-        value={targetTime}
-        onChangeText={setTargetTime}
-      />
-      <Button title="创建" onPress={handleCreateTask} />
+      <Button title="创建" onPress={handleCreateTask} color='#f4a261' />
     </View>
   );
 };
@@ -99,6 +115,17 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#fff',
   },
+  halfInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    marginBottom: 16,
+    padding: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    marginLeft: 8, // Add some space between the picker and the input
+  },
   textArea: {
     height: 100,
     borderColor: '#ddd',
@@ -116,9 +143,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     justifyContent: 'center',
   },
+  halfPickerContainer: {
+    flex: 1,
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 4,
+    marginBottom: 16,
+    justifyContent: 'center',
+  },
   picker: {
     width: '100%',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
 export default CreateTaskScreen;
+

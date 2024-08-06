@@ -42,8 +42,8 @@ const ChildViewPressure = ({ data }) => {
   const renderReferenceText = () => {
     return (
       <View style={styles.referenceRow}>
-        <Text style={styles.referenceText}>低压正常值(60-90）</Text>
-        <Text style={styles.referenceText}>高压正常值(90-140）</Text>
+        <Text style={styles.referenceText}>Normal Diastolic(60-90）</Text>
+        <Text style={styles.referenceText}>Normal Systolic(90-140）</Text>
       </View>
     );
   };

@@ -12,12 +12,20 @@ import ChildViewSugar from '../charts/ChildChartS';
 import ChildViewStep from '../charts/ChildChartF'; // 确保路径正确
 import LineP from '../charts/LineP'; //血压线
 import { fetchTasks } from './TaskListScreen'; // 导入 fetchTasks 函数
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 const CustomButton = ({ title, onPress, style }) => (
   <TouchableOpacity style={[styles.customButton, style]} onPress={onPress}>
     <Text style={[styles.customButtonText, style === styles.cancelButton && styles.cancelButtonText]}>{title}</Text>
   </TouchableOpacity>
 );
+const IconButton = ({ onPress }) => {
+  return (
+    <TouchableOpacity onPress={onPress}>
+        <FontAwesomeIcon icon="fa-regular fa-calendar-days" size={20} />
+    </TouchableOpacity>
+  );
+};
 
 const UnitInput = ({ value, onChangeText, placeholder, unit }) => {
   const handleChange = (text) => {
@@ -57,6 +65,7 @@ const DataScreen = () => {
   const [pastBloodSugarData, setPastBloodSugarData] = useState([]); // 新增状态存储过去的血糖数据
   const [pastStepsData, setPastStepsData] = useState([]); // 新增状态存储过去的步数数据
   const [currentView, setCurrentView] = useState('pressure'); // 新增状态来管理当前显示的视图
+  const [chartsLoaded, setChartsLoaded] = useState(false); // 新增状态来控制图表加载顺序
 
   const auth = getAuth();
   const firestore = getFirestore();
@@ -107,6 +116,8 @@ const DataScreen = () => {
 
     const pastDaysStepsData = await fetchPastDaysSteps(uid, today);
     setPastStepsData(pastDaysStepsData); // 设置过去步数数据状态
+
+    setChartsLoaded(true); // 设置图表加载完成
   };
 
   const fetchPastDaysBloodPressure = async (uid, currentDate) => {
@@ -245,23 +256,53 @@ const DataScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>My Healthy Data</Text>
-        <Text style={styles.dateText}>Today {new Date().toISOString().split('T')[0]}</Text>
+        <Text style={styles.title} >My Healthy Data</Text>
+        <View style={styles.iconContainer}>
+        <FontAwesomeIcon icon="fa-regular fa-calendar-days" size={20} />
+        <Text style={styles.iconText}> {new Date().toISOString().split('T')[0]}</Text>
+        </View>
 
         {role === 'child' && (
           <>
+          <View style={styles.healthDataContainer}>
             <View style={styles.dataRow}>
-              <Text style={styles.sectionTitle}>Recent Health</Text>
-              <CustomButton title="Switch" onPress={toggleView} />
+            <View style={styles.titleWithIcon}>
+              <FontAwesomeIcon 
+              icon="fa-solid fa-file-medical"
+              size={20}
+              color="red" />
+              <Text style={styles.sectionTitle}>Health Data</Text>
+              </View>
+              <TouchableOpacity onPress={toggleView} style={styles.iconButton}>
+              <FontAwesomeIcon icon="fa-solid fa-left-right" size={20} color="black" />
+              </TouchableOpacity>
             </View>
-            <View style={styles.chartContainer}>
-              {currentView === 'pressure' ? <ChildViewPressure data={pastBloodPressureData} /> : <ChildViewSugar data={pastBloodSugarData} />}
+            {chartsLoaded && (
+              <View style={styles.chartContainer}>
+                {currentView === 'pressure' ? <ChildViewPressure data={pastBloodPressureData} /> : <ChildViewSugar data={pastBloodSugarData} />}
+              </View>
+            )}
             </View>
+            <View style={styles.healthDataContainer}>
             <View style={styles.dataRow}>
-              <Text style={styles.sectionTitle}>Recent Step</Text>
-              <CustomButton title="goal" />
+            <View style={styles.titleWithIcon}>
+              <FontAwesomeIcon 
+              icon="fa-solid fa-shoe-prints"
+              size={20} 
+              color="red"
+              />
+              <Text style={styles.sectionTitle}>Today's Steps</Text>
+              </View>
+              <TouchableOpacity style={styles.iconButton}>
+              <FontAwesomeIcon icon="fa-solid fa-bullseye" size={20} color="red" />
+              </TouchableOpacity>
+              </View>
+              {chartsLoaded && (
+                <View style={styles.chartContainer}>
+                  <ChildViewStep data={pastStepsData}/>
+                </View>
+              )}
             </View>
-            <ChildViewStep data={pastStepsData} /> 
           </>
         )}
 
@@ -273,7 +314,14 @@ const DataScreen = () => {
             </View>
             <View style={styles.healthDataContainer}>
               <View style={styles.dataRow}>
+              <View style={styles.titleWithIcon}>
+                <FontAwesomeIcon 
+                icon="fa-solid fa-file-medical"
+                size={20} 
+                color="red"
+                />
                 <Text style={styles.sectionTitle}>Today's Health</Text>
+                </View>
                 <Button title="Update" onPress={() => handleUpdateClick('select')} color="#f4a261" />
               </View>
               <View style={styles.dataBoxContainer}>
@@ -284,8 +332,8 @@ const DataScreen = () => {
                   <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
                     <Text style={styles.dataBoxUnit}> mmHg</Text>
                   </View>
-                  <Text style={styles.referenceText}>高压正常值(90-140）</Text>
-                  <Text style={styles.referenceText}>低压正常值(60-90）</Text>
+                  <Text style={styles.referenceText}>Normal Systolic(90-140）</Text>
+                  <Text style={styles.referenceText}>Normal Diastolic((60-90）</Text>
                 </View>
                 <View style={styles.dataBox}>
                   <Text style={styles.dataBoxTitle1}>Blood Sugar</Text>
@@ -294,7 +342,7 @@ const DataScreen = () => {
                     <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar) === 0 ? '0.0' : parseFloat(todayBloodSugar)}</Text>
                     <Text style={styles.dataBoxUnit}> mmol/L</Text>
                   </View>
-                  <Text style={styles.referenceText}>正常值(4.4-7.0)</Text>
+                  <Text style={styles.referenceText}>Normal(4.4-7.0)</Text>
                 </View>
               </View>
             </View>
@@ -304,12 +352,20 @@ const DataScreen = () => {
         {role === 'parent' && (
           <View style={styles.stepsContainer}>
             <View style={styles.stepsHeader}>
-              <Text style={styles.sectionTitle}>Recent Steps</Text>
+              <View style={styles.titleWithIcon}>
+              <FontAwesomeIcon 
+              icon="fa-solid fa-shoe-prints"
+              size={20}
+              color="red" />
+              <Text style={styles.sectionTitle}>Today's Steps</Text>
+              </View>
               <Button title="Device" onPress={handleDeviceClick} color="#f4a261" />
             </View>
-            <View style={styles.stepsContent}>
-              <SimpleDonutChart steps={todaySteps} />
-            </View>
+            {chartsLoaded && (
+              <View style={styles.stepsContent}>
+                <SimpleDonutChart steps={todaySteps} />
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -381,6 +437,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+     color: '#f4a261',
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
@@ -391,10 +448,10 @@ const styles = StyleSheet.create({
   },
   scoreContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8 ,
   },
   scoreText: {
-    fontSize: 40,
+    fontSize: 28,
     color: 'red',
   },
   scoreLabel: {
@@ -402,7 +459,12 @@ const styles = StyleSheet.create({
   },
   healthDataContainer: {
     width: '100%',
-    marginBottom: 16,
+    backgroundColor:'white',
+    marginBottom: 10, // Add marginBottom to create space below the chart
+    borderWidth: 1, // Add border width
+    borderColor: '#d3d3d3', // Add border color
+    borderRadius: 8, // Add border radius if needed
+    padding: 10, // Add padding to create space inside the border
   },
   dataBoxContainer: {
     flexDirection: 'row',
@@ -410,12 +472,9 @@ const styles = StyleSheet.create({
   },
   dataBox: {
     width: '45%',
-    backgroundColor: 'white', // 修改背景颜色为白色
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    borderColor: '#d3d3d3', // 添加边框颜色
-    borderWidth: 1, // 添加边框宽度
   },
   dataBoxTitle1: {
     fontSize: 16,
@@ -446,10 +505,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
   },
   stepsContainer: {
+    marginBottom: 20, // Add marginBottom to create space below the chart
+    borderWidth: 1, // Add border width
+    borderColor: '#d3d3d3', // Add border color
+    borderRadius: 8, // Add border radius if needed
+    padding: 10, // Add padding to create space inside the border
     width: '100%',
+    backgroundColor:'white',
     marginBottom: 16,
   },
   stepsHeader: {
@@ -535,6 +599,37 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  titleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10, // 这里可以调整间距
+  },
+    iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconText: {
+    fontSize: 14,
+    marginLeft: 8, // 添加左边距以在图标和文本之间创建空间
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  iconText: {
+    fontSize: 14,
+    marginLeft: 8, // 添加左边距以在图标和文本之间创建空间
+  },
+  iconButton: {
+    position: 'absolute',
+    top: 5,
+    right: 10,
   },
 });
 

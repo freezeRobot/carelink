@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 const SimpleDonutChart = ({ steps, weight }) => {
   const stepLength = 0.72; // Average step length in meters
   const goal = 3000; // Goal steps
 
   const distance = (steps * stepLength) / 1000; // Convert to kilometers
-  
 
   const pieData = [
     { value: steps, color: '#177AD5' },
@@ -33,8 +33,14 @@ const SimpleDonutChart = ({ steps, weight }) => {
         />
       </View>
       <View style={styles.textContainer}>
-        <Text style={styles.textItem}>目标 ：{goal}</Text>
-        <Text style={styles.textItem}>距离：{distance.toFixed(2)} 公里</Text>
+        <View style={styles.textItem}>
+        <FontAwesomeIcon icon="fa-solid fa-bullseye" style={styles.iconGoal}/>
+          <Text style={styles.goalText}>目标 ：{goal}</Text>
+        </View>
+        <View style={styles.textItem}>
+          <FontAwesomeIcon icon="fa-solid fa-ruler-horizontal"  style={styles.iconDistance} />
+          <Text style={styles.distanceText}>距离：{distance.toFixed(2)} 公里</Text>
+        </View>
       </View>
     </View>
   );
@@ -69,9 +75,25 @@ const styles = StyleSheet.create({
     marginLeft: 40,
   },
   textItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16, //留白
+  },
+  iconGoal: {
+    color: 'red',
+    marginRight: 8,
+  },
+  iconDistance: {
+    color: 'gray',
+    marginRight: 8,
+  },
+  goalText: {
     fontSize: 14,
     color: 'black',
-    marginBottom: 16,//留白
+  },
+  distanceText: {
+    fontSize: 14,
+    color: 'black',
   },
 });
 

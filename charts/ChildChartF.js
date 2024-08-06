@@ -13,12 +13,11 @@ const ChildViewStep = ({ data }) => {
     labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }
   }));
 
-  // 找到数据中的最大值
   const maxValue = Math.max(...lineData.map(item => item.value));
-  // 设置 Y 轴的最大值，近期最大值加 1000
+  // 设置 Y 轴的最大值，近期最大值加 1000 然后取整
   const yAxisMaxValue = Math.ceil((maxValue + 1000) / 1000) * 1000;
-
   // 生成Y轴标签，分成3段，共显示4个值
+  
   const numberOfSegments = 3;
   const segmentInterval = yAxisMaxValue / numberOfSegments;
   const yAxisLabelTexts = Array.from({ length: numberOfSegments + 1 }, (_, i) => (i * segmentInterval).toString());
