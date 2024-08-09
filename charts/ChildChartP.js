@@ -61,13 +61,37 @@ const ChildViewPressure = ({ data }) => {
         roundedBottom
         hideRules={false}
         xAxisThickness={1}
-        yAxisThickness={1}
+        yAxisThickness={0.5}
         yAxisTextStyle={{ color: 'gray' }}
         xAxisTextStyle={{ color: 'gray' }}
         noOfSections={4}
         maxValue={180}
         height={100}
         width={280}
+        showReferenceLine1
+        referenceLine1Position={180}  // 设置参考线的位置
+        referenceLine1Config={{
+          color: 'rgba(255, 0, 0, 0.5)',  // 红色带透明度的参考线
+          thickness: 2,  // 参考线粗细
+          dashWidth: 4,  // 虚线的宽度
+          dashGap: 2,    // 虚线的间隙
+        }}
+        showReferenceLine2
+        referenceLine2Position={140}  
+        referenceLine2Config={{
+          color: 'rgba(255, 165, 0, 0.5)',  
+          thickness: 2,  
+          dashWidth: 4,  
+          dashGap: 2,   
+        }}
+        showReferenceLine3
+        referenceLine3Position={60}  
+        referenceLine3Config={{
+          color: 'rgba(0, 0, 255, 0.5)',  
+          thickness: 2,  
+          dashWidth: 4,  
+          dashGap: 2,    
+        }}
       />
     </View>
   );
@@ -114,7 +138,7 @@ const styles = StyleSheet.create({
   referenceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom:5,
+    marginBottom: 5,
     paddingHorizontal: 55, // 添加左右内边距以减少文本之间的间隔
   },
 });

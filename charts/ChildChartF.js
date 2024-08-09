@@ -7,17 +7,16 @@ const ChildViewStep = ({ data }) => {
   const today = new Date().toISOString().split('T')[0];
 
   // 生成图表数据，包括日期标签
-  const lineData = data.map((item) => ({
-    value: item.value,
+  const stepsData = data.map((item) => ({
+    value: item.steps,
     label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
     labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }
   }));
 
-  const maxValue = Math.max(...lineData.map(item => item.value));
+  const maxValue = Math.max(...stepsData.map(item => item.value));
   // 设置 Y 轴的最大值，近期最大值加 1000 然后取整
   const yAxisMaxValue = Math.ceil((maxValue + 1000) / 1000) * 1000;
   // 生成Y轴标签，分成3段，共显示4个值
-  
   const numberOfSegments = 3;
   const segmentInterval = yAxisMaxValue / numberOfSegments;
   const yAxisLabelTexts = Array.from({ length: numberOfSegments + 1 }, (_, i) => (i * segmentInterval).toString());
@@ -28,7 +27,7 @@ const ChildViewStep = ({ data }) => {
         <Text style={styles.titleText}>Step Count Chart</Text>
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
-            <View style={styles.legendColor} />
+            <View style={[styles.legendColor, { backgroundColor: '#177AD5' }]} />
             <Text style={styles.legendText}>Steps</Text>
           </View>
         </View>
@@ -41,7 +40,7 @@ const ChildViewStep = ({ data }) => {
       {renderTitle()}
       <LineChart
         initialSpacing={20}
-        data={lineData}
+        data={stepsData}
         spacing={48} // 设置点和点之间的距离
         hideDataPoints
         thickness={2}
@@ -50,7 +49,7 @@ const ChildViewStep = ({ data }) => {
         showVerticalLines
         verticalLinesColor="rgba(23,122,213,0.5)"
         xAxisColor="#177AD5"
-        color="#177AD5"
+        color="#177AD5" // 主线颜色（步数）
         height={100} // 设置图表的最大高度
         width={280}  // 设置图表的最大宽度
         yAxisLabelTexts={yAxisLabelTexts} // 添加Y轴标签
@@ -94,7 +93,7 @@ const styles = StyleSheet.create({
     height: 6,
     width: 6,
     borderRadius: 6,
-    backgroundColor: '#0BA5A4',
+    backgroundColor: '#177AD5',
     marginRight: 8,
   },
   legendText: {

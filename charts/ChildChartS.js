@@ -49,6 +49,30 @@ const ChildViewSugar = ({ data }) => {
         maxValue={12}
         height={100}
         width={270}
+        showReferenceLine1
+        referenceLine1Position={7.0}  // 设置参考线的位置
+        referenceLine1Config={{
+          color: 'rgba(255, 165, 0, 0.5)',  // 红色带透明度的参考线
+          thickness: 2,  // 参考线粗细
+          dashWidth: 4,  // 虚线的宽度
+          dashGap: 2,    // 虚线的间隙
+        }}
+        showReferenceLine2
+        referenceLine2Position={11.1}  
+        referenceLine2Config={{
+          color: 'rgba(255, 0, 0, 0.5)',  
+          thickness: 2,  
+          dashWidth: 4,  
+          dashGap: 2,    
+        }}
+        showReferenceLine3
+        referenceLine3Position={4.4}  
+        referenceLine3Config={{
+          color: 'rgba(0, 0, 255, 0.5)',  
+          thickness: 2,  
+          dashWidth: 4,  
+          dashGap: 2,    
+        }}
       />
     </View>
   );

@@ -3,15 +3,16 @@ import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
-const SimpleDonutChart = ({ steps = 0 }) => {
+const SimpleDonutChart = ({ steps = 0, goal = 0 }) => {
   const stepLength = 0.72; // Average step length in meters
-  const goal = 3000; // Goal steps
 
+  // 如果 goal 为 0 或者 goal 小于步数，则将 adjustedGoal 设置为 steps，以确保图表显示 100%
+  const adjustedGoal = goal > 0 && goal >= steps ? goal : steps;
   const distance = (steps * stepLength) / 1000; // Convert to kilometers
 
   const pieData = [
     { value: steps, color: '#177AD5' },
-    { value: goal - steps, color: 'lightgray' },
+    { value: adjustedGoal - steps, color: 'lightgray' },
   ];
 
   return (
@@ -34,7 +35,7 @@ const SimpleDonutChart = ({ steps = 0 }) => {
       </View>
       <View style={styles.textContainer}>
         <View style={styles.textItem}>
-          <FontAwesomeIcon icon="fa-solid fa-bullseye" style={styles.iconGoal}/>
+          <FontAwesomeIcon icon="fa-solid fa-bullseye" style={styles.iconGoal} />
           <Text style={styles.goalText}>目标 ：{goal}</Text>
         </View>
         <View style={styles.textItem}>
@@ -45,7 +46,6 @@ const SimpleDonutChart = ({ steps = 0 }) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
