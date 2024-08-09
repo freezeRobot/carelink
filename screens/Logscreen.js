@@ -109,7 +109,7 @@ const LogScreen = () => {
   return (
     <ImageBackground source={require('../assets/background.jpg')} style={styles.background}>
       <View style={styles.container}>
-        <Text style={styles.title}>name</Text>
+        <Text style={styles.title}>CareLink</Text>
         {isLogin && (
           <View style={styles.selectionContainer}>
             <Text style={styles.selectionTitle}>choose role</Text>
@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 24,
+    color:'#f88',
   },
   inputContainer: {
     width: '100%',
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   selectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     marginBottom: 8,
   },
   selectionButtons: {

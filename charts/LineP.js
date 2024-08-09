@@ -8,11 +8,17 @@ const LineP = ({ systolic, diastolic }) => {
   const normalColor = 'url(#grad)'; // 正常范围的渐变颜色
   const highColor = 'red'; // 偏高的颜色
   const lowColor = 'yellow'; // 偏低的颜色
+  const noupdateColor ='gray'//未更新的颜色
   let color = normalColor;
   let ratio = 1.0; // 默认全线条
   let text = '正常';
 
-  if (systolic >= 140 || diastolic >= 90) {
+  if(systolic ===0 || diastolic ===0)
+    {
+      color = noupdateColor;
+      text = '未更新';
+    }
+  else if (systolic >= 140 || diastolic >= 90) {
     color = highColor;
     text = '偏高';
   } else if (systolic <= 90 || diastolic <= 60) {

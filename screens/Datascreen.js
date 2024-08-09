@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, addDoc,collection,query,where,getDocs} from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import { getMockSteps } from '../apis/stepApi'; // 更新引用路径
 import SimpleDonutChart from '../charts/SimpleDonutChart';
@@ -19,13 +19,12 @@ const CustomButton = ({ title, onPress, style }) => (
     <Text style={[styles.customButtonText, style === styles.cancelButton && styles.cancelButtonText]}>{title}</Text>
   </TouchableOpacity>
 );
-const IconButton = ({ onPress }) => {
-  return (
-    <TouchableOpacity onPress={onPress}>
-        <FontAwesomeIcon icon="fa-regular fa-calendar-days" size={20} />
-    </TouchableOpacity>
-  );
-};
+
+const IconButton = ({ onPress }) => (
+  <TouchableOpacity onPress={onPress}>
+    <FontAwesomeIcon icon="fa-regular fa-calendar-days" size={20} />
+  </TouchableOpacity>
+);
 
 const UnitInput = ({ value, onChangeText, placeholder, unit }) => {
   const handleChange = (text) => {
@@ -55,17 +54,17 @@ const DataScreen = () => {
   const [systolicPressure, setSystolicPressure] = useState('');
   const [diastolicPressure, setDiastolicPressure] = useState('');
   const [bloodSugar, setBloodSugar] = useState('0.0');
-  const [todayBloodPressure, setTodayBloodPressure] = useState({ systolic: 0, diastolic: 0 });
-  const [todayBloodSugar, setTodayBloodSugar] = useState(0);
+  const [todayHealthData, setTodayHealthData] = useState({
+    bloodPressure: { systolic: 0, diastolic: 0 },
+    bloodSugar: 0,
+    steps: 0,
+  });
   const [tasks, setTasks] = useState({ todo: [], done: [] });
   const [remainingTasks, setRemainingTasks] = useState(0);
   const [doneCount, setDoneCount] = useState(0);
-  const [todaySteps, setTodaySteps] = useState(0); // Default to 0 steps
-  const [pastBloodPressureData, setPastBloodPressureData] = useState([]); // 新增状态存储过去的血压数据
-  const [pastBloodSugarData, setPastBloodSugarData] = useState([]); // 新增状态存储过去的血糖数据
-  const [pastStepsData, setPastStepsData] = useState([]); // 新增状态存储过去的步数数据
-  const [currentView, setCurrentView] = useState('pressure'); // 新增状态来管理当前显示的视图
-  const [chartsLoaded, setChartsLoaded] = useState(false); // 新增状态来控制图表加载顺序
+  const [pastHealthData, setPastHealthData] = useState([]); // 存储过去的健康数据
+  const [currentView, setCurrentView] = useState('pressure'); // 管理当前显示的视图
+  const [chartsLoaded, setChartsLoaded] = useState(false); // 控制图表加载顺序
 
   const auth = getAuth();
   const firestore = getFirestore();
@@ -88,39 +87,31 @@ const DataScreen = () => {
     const today = new Date();
     const timestamp = today.toISOString().split('T')[0];
 
-    const bloodPressureRef = doc(firestore, 'blood pressure', `${uid}_${timestamp}`);
-    const bloodSugarRef = doc(firestore, 'blood sugar', `${uid}_${timestamp}`);
-    const stepsRef = doc(firestore, 'steps', `${uid}_${timestamp}`); // 新增步数文档
+    const healthDataRef = doc(firestore, 'healthData', `${uid}_${timestamp}`);
+    const healthDataDoc = await getDoc(healthDataRef);
 
-    const bloodPressureDoc = await getDoc(bloodPressureRef);
-    const bloodSugarDoc = await getDoc(bloodSugarRef);
-    const stepsDoc = await getDoc(stepsRef); // 获取步数文档
-
-    if (bloodPressureDoc.exists()) {
-      setTodayBloodPressure({
-        systolic: bloodPressureDoc.data().systolic,
-        diastolic: bloodPressureDoc.data().diastolic
+    if (healthDataDoc.exists()) {
+      const data = healthDataDoc.data().HealthData;
+      setTodayHealthData({
+        bloodPressure: data.BloodPressure,
+        bloodSugar: data.BloodSugar,
+        steps: data.Steps,
       });
     } else {
-      setTodayBloodPressure({ systolic: 0, diastolic: 0 });
+      setTodayHealthData({
+        bloodPressure: { systolic: 0, diastolic: 0 },
+        bloodSugar: 0,
+        steps: 0,
+      });
     }
 
-    setTodayBloodSugar(bloodSugarDoc.exists() ? bloodSugarDoc.data().value : 0);
-    setTodaySteps(stepsDoc.exists() ? stepsDoc.data().value : 0); // 设置步数状态，默认值为0
-
-    const pastDaysBloodPressureData = await fetchPastDaysBloodPressure(uid, today);
-    setPastBloodPressureData(pastDaysBloodPressureData);
-
-    const pastDaysBloodSugarData = await fetchPastDaysBloodSugar(uid, today);
-    setPastBloodSugarData(pastDaysBloodSugarData);
-
-    const pastDaysStepsData = await fetchPastDaysSteps(uid, today);
-    setPastStepsData(pastDaysStepsData); // 设置过去步数数据状态
+    const pastDaysHealthData = await fetchPastDaysHealthData(uid, today);
+    setPastHealthData(pastDaysHealthData);
 
     setChartsLoaded(true); // 设置图表加载完成
   };
 
-  const fetchPastDaysBloodPressure = async (uid, currentDate) => {
+  const fetchPastDaysHealthData = async (uid, currentDate) => {
     const dates = [];
     const data = [];
     for (let i = -5; i <= 0; i++) {
@@ -130,82 +121,96 @@ const DataScreen = () => {
     }
 
     for (const date of dates) {
-      const ref = doc(firestore, 'blood pressure', `${uid}_${date}`);
+      const ref = doc(firestore, 'healthData', `${uid}_${date}`);
       const docSnap = await getDoc(ref);
       if (docSnap.exists()) {
-        data.push({ date, systolic: docSnap.data().systolic, diastolic: docSnap.data().diastolic });
+        data.push({
+          date,
+          bloodPressure: docSnap.data().HealthData.BloodPressure,
+          bloodSugar: docSnap.data().HealthData.BloodSugar,
+          steps: docSnap.data().HealthData.Steps,
+        });
       } else {
-        data.push({ date, systolic: 0, diastolic: 0 });
+        data.push({
+          date,
+          bloodPressure: { systolic: 0, diastolic: 0 },
+          bloodSugar: 0,
+          steps: 0,
+        });
       }
     }
 
     return data;
   };
 
-  const fetchPastDaysBloodSugar = async (uid, currentDate) => {
-    const dates = [];
-    const data = [];
-    for (let i = -5; i <= 0; i++) {
-      const date = new Date(currentDate);
-      date.setDate(currentDate.getDate() + i);
-      dates.push(date.toISOString().split('T')[0]);
-    }
-
-    for (const date of dates) {
-      const ref = doc(firestore, 'blood sugar', `${uid}_${date}`);
-      const docSnap = await getDoc(ref);
-      if (docSnap.exists()) {
-        data.push({ date, bloodSugar: docSnap.data().value });
-      } else {
-        data.push({ date, bloodSugar: 0 });
-      }
-    }
-
-    return data;
-  };
-
-  const fetchPastDaysSteps = async (uid, currentDate) => {
-    const dates = [];
-    const data = [];
-    for (let i = -5; i <= 0; i++) {
-      const date = new Date(currentDate);
-      date.setDate(currentDate.getDate() + i);
-      dates.push(date.toISOString().split('T')[0]);
-    }
-
-    for (const date of dates) {
-      const ref = doc(firestore, 'steps', `${uid}_${date}`);
-      const docSnap = await getDoc(ref);
-      if (docSnap.exists()) {
-        data.push({ date, value: docSnap.data().value });
-      } else {
-        data.push({ date, value: 0 });
-      }
-    }
-
-    return data;
-  };
 
   const handleSaveValues = async () => {
     if (user) {
       const uid = user.uid;
       const today = new Date();
-      const timestamp = today.toISOString().split('T')[0];
-
-      if (updateType === 'blood pressure') {
-        const bloodPressureRef = doc(firestore, 'blood pressure', `${uid}_${timestamp}`);
-        await setDoc(bloodPressureRef, { uid, systolic: systolicPressure, diastolic: diastolicPressure, timestamp: new Date() }, { merge: true });
-      } else if (updateType === 'blood sugar') {
-        const bloodSugarRef = doc(firestore, 'blood sugar', `${uid}_${timestamp}`);
-        await setDoc(bloodSugarRef, { uid, value: bloodSugar, timestamp: new Date() }, { merge: true });
+      const timestamp = today.toISOString().split('T')[0]; // 仅保留 YYYY-MM-DD 部分
+  
+      // 获取当前用户的健康数据集合的引用
+      const healthDataCollection = collection(firestore, 'healthData');
+  
+      // 创建查询以查找当前用户和当天的文档
+      const q = query(healthDataCollection, where("uid", "==", uid), where("timestamp", "==", timestamp));
+      const querySnapshot = await getDocs(q);
+  
+      let healthDataDocRef;
+      let existingData = {
+        bloodPressure: { systolic: 0, diastolic: 0 },
+        bloodSugar: 0,
+        steps: 0,
+        goal: 0,
+      };
+  
+      if (!querySnapshot.empty) {
+        // 获取现有文档的引用
+        const existingDoc = querySnapshot.docs[0];
+        healthDataDocRef = existingDoc.ref;
+        existingData = existingDoc.data().HealthData;
+      } else {
+        // 如果没有找到文档，创建新文档
+        healthDataDocRef = doc(healthDataCollection);
       }
-
+  
+      // 初始化 currentData 并保留现有数据
+      const currentData = {
+        bloodPressure: existingData.bloodPressure,
+        bloodSugar: existingData.bloodSugar,
+        steps: existingData.steps,
+        goal: existingData.goal,
+      };
+  
+      // 根据更新类型更新数据
+      if (updateType === 'blood pressure') {
+        currentData.bloodPressure = {
+          systolic: systolicPressure !== undefined ? systolicPressure : currentData.bloodPressure.systolic,
+          diastolic: diastolicPressure !== undefined ? diastolicPressure : currentData.bloodPressure.diastolic,
+        };
+      } else if (updateType === 'blood sugar') {
+        currentData.bloodSugar = bloodSugar !== undefined ? bloodSugar : currentData.bloodSugar;
+      } else if (updateType === 'steps') {
+        currentData.steps = steps !== undefined ? steps : currentData.steps;
+        currentData.goal = goal !== undefined ? goal : currentData.goal;
+      }
+  
+      // 更新或创建文档
+      await setDoc(healthDataDocRef, {
+        uid,
+        HealthData: currentData,
+        timestamp: timestamp, // 仅保留 YYYY-MM-DD
+      }, { merge: true });
+  
       setModalVisible(false);
-      setUpdateType(null); // Reset update type
+      setUpdateType(null); // 重置更新类型
       fetchTodayValues(user);
       fetchTasks(firestore, user.uid, setTasks, setRemainingTasks, setDoneCount); // 更新未完成任务数
     }
   };
+  
+  
 
   const handleUpdateClick = (type) => {
     setUpdateType(type);
@@ -220,34 +225,71 @@ const DataScreen = () => {
         {
           text: "No",
           onPress: () => console.log("No Pressed"),
-          style: "cancel"
+          style: "cancel",
         },
         {
-          text: "Yes", onPress: async () => {
+          text: "Yes",
+          onPress: async () => {
             if (user) {
-              const steps = await getMockSteps();
+              const steps = await getMockSteps();  // 获取模拟步数数据
+              const goal = 5000;  // 设置默认目标值，例如5000步
               const uid = user.uid;
               const today = new Date();
-              const timestamp = today.toISOString().split('T')[0];
-              const stepsRef = doc(firestore, 'steps', `${uid}_${timestamp}`);
-
-              const stepsDoc = await getDoc(stepsRef);
-
-              if (stepsDoc.exists()) {
-                // 如果文档存在，则更新数据
-                await setDoc(stepsRef, { value: steps, timestamp: new Date() }, { merge: true });
+              const timestamp = today.toISOString().split('T')[0]; // 仅保留 YYYY-MM-DD 部分
+  
+              // 获取当前用户的健康数据集合的引用
+              const healthDataCollection = collection(firestore, 'healthData');
+  
+              // 创建查询以查找当前用户和当天的文档
+              const q = query(healthDataCollection, where("uid", "==", uid), where("timestamp", "==", timestamp));
+              const querySnapshot = await getDocs(q);
+  
+              let healthDataDocRef;
+              let existingData = {
+                bloodPressure: { systolic: 0, diastolic: 0 },
+                bloodSugar: 0,
+                steps: 0,
+                goal: 0,
+              };
+  
+              // 检查当天是否已经存在文档
+              if (!querySnapshot.empty) {
+                // 获取现有文档的引用
+                const existingDoc = querySnapshot.docs[0];
+                healthDataDocRef = existingDoc.ref; // 使用现有文档的引用
+                existingData = existingDoc.data().HealthData;
               } else {
-                // 如果文档不存在，则创建新文档
-                await setDoc(stepsRef, { uid, value: steps, timestamp: new Date() }, { merge: true });
+                // 如果不存在文档，则创建新文档
+                healthDataDocRef = doc(healthDataCollection);
               }
-
+  
+              // 更新步数和目标，同时保留其他数据
+              const currentData = {
+                bloodPressure: existingData.bloodPressure,
+                bloodSugar: existingData.bloodSugar,
+                steps: steps,
+                goal: existingData.goal !== undefined ? existingData.goal : goal, // 如果存在目标值则保留，否则设置为默认值
+              };
+  
+              // 更新或创建文档
+              await setDoc(healthDataDocRef, {
+                uid,
+                HealthData: currentData,
+                timestamp: timestamp, // 仅保留 YYYY-MM-DD
+              }, { merge: true });
+  
+              // 重新获取当天的数据
               fetchTodayValues(user);
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
+  
+  
+  
+  
 
   const toggleView = () => {
     setCurrentView((prevView) => (prevView === 'pressure' ? 'sugar' : 'pressure'));
@@ -256,50 +298,57 @@ const DataScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title} >My Healthy Data</Text>
+        <Text style={styles.title}>My Healthy Data</Text>
         <View style={styles.iconContainer}>
-        <FontAwesomeIcon icon="fa-regular fa-calendar-days" size={20} />
-        <Text style={styles.iconText}> {new Date().toISOString().split('T')[0]}</Text>
+          <FontAwesomeIcon icon="fa-regular fa-calendar-days" size={20} />
+          <Text style={styles.iconText}> {new Date().toISOString().split('T')[0]}</Text>
         </View>
 
         {role === 'child' && (
           <>
-          <View style={styles.healthDataContainer}>
-            <View style={styles.dataRow}>
-            <View style={styles.titleWithIcon}>
-              <FontAwesomeIcon 
-              icon="fa-solid fa-file-medical"
-              size={20}
-              color="red" />
-              <Text style={styles.sectionTitle}>Health Data</Text>
-              </View>
-              <TouchableOpacity onPress={toggleView} style={styles.iconButton}>
-              <FontAwesomeIcon icon="fa-solid fa-left-right" size={20} color="black" />
-              </TouchableOpacity>
-            </View>
-            {chartsLoaded && (
-              <View style={styles.chartContainer}>
-                {currentView === 'pressure' ? <ChildViewPressure data={pastBloodPressureData} /> : <ChildViewSugar data={pastBloodSugarData} />}
-              </View>
-            )}
-            </View>
             <View style={styles.healthDataContainer}>
-            <View style={styles.dataRow}>
-            <View style={styles.titleWithIcon}>
-              <FontAwesomeIcon 
-              icon="fa-solid fa-shoe-prints"
-              size={20} 
-              color="red"
-              />
-              <Text style={styles.sectionTitle}>Today's Steps</Text>
-              </View>
-              <TouchableOpacity style={styles.iconButton}>
-              <FontAwesomeIcon icon="fa-solid fa-bullseye" size={20} color="red" />
-              </TouchableOpacity>
+              <View style={styles.dataRow}>
+                <View style={styles.titleWithIcon}>
+                  <FontAwesomeIcon icon="fa-solid fa-file-medical" size={20} color="red" />
+                  <Text style={styles.sectionTitle}>Health Data</Text>
+                </View>
+                <TouchableOpacity onPress={toggleView} style={styles.iconButton}>
+                  <FontAwesomeIcon icon="fa-solid fa-left-right" size={20} color="black" />
+                </TouchableOpacity>
               </View>
               {chartsLoaded && (
                 <View style={styles.chartContainer}>
-                  <ChildViewStep data={pastStepsData}/>
+                  {currentView === 'pressure' ? (
+                    <ChildViewPressure data={pastHealthData.map(data => ({
+                      date: data.date,
+                      systolic: data.bloodPressure.systolic,
+                      diastolic: data.bloodPressure.diastolic,
+                    }))} />
+                  ) : (
+                    <ChildViewSugar data={pastHealthData.map(data => ({
+                      date: data.date,
+                      bloodSugar: data.bloodSugar,
+                    }))} />
+                  )}
+                </View>
+              )}
+            </View>
+            <View style={styles.healthDataContainer}>
+              <View style={styles.dataRow}>
+                <View style={styles.titleWithIcon}>
+                  <FontAwesomeIcon icon="fa-solid fa-shoe-prints" size={20} color="red" />
+                  <Text style={styles.sectionTitle}>Today's Steps</Text>
+                </View>
+                <TouchableOpacity style={styles.iconButton}>
+                  <FontAwesomeIcon icon="fa-solid fa-bullseye" size={20} color="red" />
+                </TouchableOpacity>
+              </View>
+              {chartsLoaded && (
+                <View style={styles.chartContainer}>
+                  <ChildViewStep data={pastHealthData.map(data => ({
+                    date: data.date,
+                    steps: data.steps,
+                  }))} />
                 </View>
               )}
             </View>
@@ -314,32 +363,34 @@ const DataScreen = () => {
             </View>
             <View style={styles.healthDataContainer}>
               <View style={styles.dataRow}>
-              <View style={styles.titleWithIcon}>
-                <FontAwesomeIcon 
-                icon="fa-solid fa-file-medical"
-                size={20} 
-                color="red"
-                />
-                <Text style={styles.sectionTitle}>Today's Health</Text>
+                <View style={styles.titleWithIcon}>
+                  <FontAwesomeIcon icon="fa-solid fa-file-medical" size={20} color="red" />
+                  <Text style={styles.sectionTitle}>Today's Health</Text>
                 </View>
                 <Button title="Update" onPress={() => handleUpdateClick('select')} color="#f4a261" />
               </View>
               <View style={styles.dataBoxContainer}>
                 <View style={styles.dataBox}>
                   <Text style={styles.dataBoxTitle2}>Blood Pressure</Text>
-                  <LineP systolic={todayBloodPressure.systolic} diastolic={todayBloodPressure.diastolic} />
+                  <LineP systolic={todayHealthData?.bloodPressure?.systolic || 0} diastolic={todayHealthData?.bloodPressure?.diastolic || 0} />
                   <View style={styles.dataBoxValueContainer}>
-                  <Text style={styles.dataBoxValue}>{todayBloodPressure.systolic === 0 && todayBloodPressure.diastolic === 0 ? '0/0' : `${todayBloodPressure.systolic}/${todayBloodPressure.diastolic}`}</Text>
+                    <Text style={styles.dataBoxValue}>
+                      {todayHealthData?.bloodPressure?.systolic === 0 && todayHealthData?.bloodPressure?.diastolic === 0 
+                        ? '0/0'
+                        : `${todayHealthData?.bloodPressure?.systolic || 0}/${todayHealthData?.bloodPressure?.diastolic || 0}`}
+                    </Text>
                     <Text style={styles.dataBoxUnit}> mmHg</Text>
                   </View>
-                  <Text style={styles.referenceText}>Normal Systolic(90-140）</Text>
-                  <Text style={styles.referenceText}>Normal Diastolic((60-90）</Text>
+                  <Text style={styles.referenceText}>Normal Systolic(90-140)</Text>
+                  <Text style={styles.referenceText}>Normal Diastolic(60-90)</Text>
                 </View>
                 <View style={styles.dataBox}>
                   <Text style={styles.dataBoxTitle1}>Blood Sugar</Text>
-                  <SugarChart bloodSugar={parseFloat(todayBloodSugar)} />
+                  <SugarChart bloodSugar={parseFloat(todayHealthData.bloodSugar)} />
                   <View style={styles.dataBoxValueContainer}>
-                    <Text style={styles.dataBoxValue}>{parseFloat(todayBloodSugar) === 0 ? '0.0' : parseFloat(todayBloodSugar)}</Text>
+                    <Text style={styles.dataBoxValue}>
+                      {parseFloat(todayHealthData.bloodSugar) === 0 ? '0.0' : parseFloat(todayHealthData.bloodSugar)}
+                    </Text>
                     <Text style={styles.dataBoxUnit}> mmol/L</Text>
                   </View>
                   <Text style={styles.referenceText}>Normal(4.4-7.0)</Text>
@@ -353,17 +404,14 @@ const DataScreen = () => {
           <View style={styles.stepsContainer}>
             <View style={styles.stepsHeader}>
               <View style={styles.titleWithIcon}>
-              <FontAwesomeIcon 
-              icon="fa-solid fa-shoe-prints"
-              size={20}
-              color="red" />
-              <Text style={styles.sectionTitle}>Today's Steps</Text>
+                <FontAwesomeIcon icon="fa-solid fa-shoe-prints" size={20} color="red" />
+                <Text style={styles.sectionTitle}>Today's Steps</Text>
               </View>
               <Button title="Device" onPress={handleDeviceClick} color="#f4a261" />
             </View>
             {chartsLoaded && (
               <View style={styles.stepsContent}>
-                <SimpleDonutChart steps={todaySteps} />
+                <SimpleDonutChart steps={todayHealthData.steps} />
               </View>
             )}
           </View>
@@ -437,7 +485,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-     color: '#f4a261',
+    color: '#f4a261',
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
@@ -448,7 +496,7 @@ const styles = StyleSheet.create({
   },
   scoreContainer: {
     alignItems: 'center',
-    marginBottom: 8 ,
+    marginBottom: 8,
   },
   scoreText: {
     fontSize: 28,
@@ -459,7 +507,7 @@ const styles = StyleSheet.create({
   },
   healthDataContainer: {
     width: '100%',
-    backgroundColor:'white',
+    backgroundColor: 'white',
     marginBottom: 10, // Add marginBottom to create space below the chart
     borderWidth: 1, // Add border width
     borderColor: '#d3d3d3', // Add border color
@@ -513,7 +561,7 @@ const styles = StyleSheet.create({
     borderRadius: 8, // Add border radius if needed
     padding: 10, // Add padding to create space inside the border
     width: '100%',
-    backgroundColor:'white',
+    backgroundColor: 'white',
     marginBottom: 16,
   },
   stepsHeader: {
@@ -609,18 +657,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10, // 这里可以调整间距
   },
-    iconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconText: {
-    fontSize: 14,
-    marginLeft: 8, // 添加左边距以在图标和文本之间创建空间
-  },
   iconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
   },
   iconText: {
     fontSize: 14,

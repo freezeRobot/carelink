@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
-const SimpleDonutChart = ({ steps, weight }) => {
+const SimpleDonutChart = ({ steps = 0 }) => {
   const stepLength = 0.72; // Average step length in meters
   const goal = 3000; // Goal steps
 
@@ -34,17 +34,18 @@ const SimpleDonutChart = ({ steps, weight }) => {
       </View>
       <View style={styles.textContainer}>
         <View style={styles.textItem}>
-        <FontAwesomeIcon icon="fa-solid fa-bullseye" style={styles.iconGoal}/>
+          <FontAwesomeIcon icon="fa-solid fa-bullseye" style={styles.iconGoal}/>
           <Text style={styles.goalText}>目标 ：{goal}</Text>
         </View>
         <View style={styles.textItem}>
-          <FontAwesomeIcon icon="fa-solid fa-ruler-horizontal"  style={styles.iconDistance} />
+          <FontAwesomeIcon icon="fa-solid fa-ruler-horizontal" style={styles.iconDistance} />
           <Text style={styles.distanceText}>距离：{distance.toFixed(2)} 公里</Text>
         </View>
       </View>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
