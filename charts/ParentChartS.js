@@ -13,20 +13,20 @@ const SugarChart = ({ bloodSugar }) => {
   const endAngleHigh = -Math.PI / 8; // 偏高状态结束角度
 
   let endAngle = endAngleNormal;
-  let text = '正常';
+  let text = 'Normal';
   let color = 'green';
 
   if (bloodSugar === 0) {
     endAngle = endAngleNormal;
-    text = '未更新';
+    text = 'Pending';
     color = 'gray';
   } else if (bloodSugar < 4.4) {
     endAngle = endAngleLow;
-    text = '偏低';
+    text = 'Low';
     color = 'yellow';
   } else if (bloodSugar > 7.0) {
     endAngle = endAngleHigh;
-    text = '偏高';
+    text = 'High';
   }
 
   const createArcPath = (startAngle, endAngle, radius, center) => {

@@ -28,7 +28,7 @@ const ChildViewPressure = ({ data }) => {
   const renderTitle = () => {
     return (
       <View style={{ marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={styles.titleText}>Blood Pressure Chart</Text>
+        <Text style={styles.titleText}>Blood Pressure </Text>
         <View style={styles.referenceContainer}>
           <View style={styles.diastolicColor} />
           <Text style={styles.referenceText}>Diastolic</Text>

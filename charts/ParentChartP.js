@@ -11,19 +11,19 @@ const LineP = ({ systolic, diastolic }) => {
   const noupdateColor ='gray'//未更新的颜色
   let color = normalColor;
   let ratio = 1.0; // 默认全线条
-  let text = '正常';
+  let text = 'Normal';
 
   if(systolic ===0 || diastolic ===0)
     {
       color = noupdateColor;
-      text = '未更新';
+      text = 'Pending';
     }
   else if (systolic >= 140 || diastolic >= 90) {
     color = highColor;
-    text = '偏高';
+    text = 'High';
   } else if (systolic <= 90 || diastolic <= 60) {
     color = lowColor;
-    text = '偏低';
+    text = 'Low';
   }
 
   const createLinePath = (ratio, size) => {

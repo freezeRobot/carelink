@@ -39,6 +39,9 @@ const BottomNavigation = () => {
           size={30}
           color={getIconColor('DataScreen')}
         />
+        <Text style={[styles.footerText, { color: getIconColor('DataScreen') }]}>
+          Data
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.footerButton}
@@ -49,16 +52,22 @@ const BottomNavigation = () => {
           size={30}
           color={getIconColor('TaskListScreen')}
         />
+        <Text style={[styles.footerText, { color: getIconColor('TaskListScreen') }]}>
+          Tasks
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity 
         style={styles.footerButton}
         onPress={handleLogout}
       >
         <FontAwesomeIcon 
-          icon="fa-solid fa-house" 
+          icon="fa-solid fa-right-from-bracket" 
           size={30}
           color={'rgba(255, 255, 255, 0.6)'}
         />
+        <Text style={styles.footerText}>
+          Logout
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -79,6 +88,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 8,
     marginHorizontal: 4,
+  },
+  footerText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
   },
 });
 

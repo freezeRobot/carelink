@@ -27,10 +27,11 @@ import { faCaretUp } from '@fortawesome/free-solid-svg-icons/faCaretUp';
 import { faCircle } from '@fortawesome/free-regular-svg-icons/faCircle';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons/faCircleCheck';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
+import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons/faRightFromBracket';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 library.add(fab, faChartColumn,faList, faHouse, faShoePrints,faFileMedical, faCalendarDays, faRulerHorizontal, faBullseye, faCalendarPlus
-  , faBowlFood, faPersonRunning, faPills, faLeftRight, faCaretDown, faCircle, faCircleCheck, faCaretUp, faPlus
+  , faBowlFood, faPersonRunning, faPills, faLeftRight, faCaretDown, faCircle, faCircleCheck, faCaretUp, faPlus,faRightFromBracket
  );
 const Stack = createStackNavigator();
 
@@ -38,7 +39,10 @@ const App = () => {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <Stack.Navigator>
+        <Stack.Navigator
+                  screenOptions={{
+            headerShown: false, // 全局隐藏标题栏
+          }}>
           <Stack.Screen name="LogScreen" component={LogScreen} />
           <Stack.Screen name="DataScreen" component={DataScreen} />
           <Stack.Screen name="TaskListScreen" component={TaskListScreen} />

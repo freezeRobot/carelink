@@ -21,10 +21,10 @@ const ChildViewSugar = ({ data }) => {
   const renderTitle = () => {
     return (
       <View style={{ marginVertical: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={styles.titleText}>Blood Sugar Chart</Text>
+        <Text style={styles.titleText}>Blood Sugar </Text>
         <View style={styles.referenceContainer}>
           <View style={styles.legendColor} />
-          <Text style={styles.referenceText}>正常值(4.4-7.0)</Text>
+          <Text style={styles.referenceText}>Normal(4.4-7.0)</Text>
         </View>
       </View>
     );
@@ -50,12 +50,12 @@ const ChildViewSugar = ({ data }) => {
         height={100}
         width={270}
         showReferenceLine1
-        referenceLine1Position={7.0}  // 设置参考线的位置
+        referenceLine1Position={7.0}  
         referenceLine1Config={{
-          color: 'rgba(255, 165, 0, 0.5)',  // 红色带透明度的参考线
-          thickness: 2,  // 参考线粗细
-          dashWidth: 4,  // 虚线的宽度
-          dashGap: 2,    // 虚线的间隙
+          color: 'rgba(255, 165, 0, 0.5)',  
+          thickness: 2,  
+          dashWidth: 4,  
+          dashGap: 2,    
         }}
         showReferenceLine2
         referenceLine2Position={11.1}  

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
-const SimpleDonutChart = ({ steps = 0, goal = 0 }) => {
+const DonutChart = ({ steps = 0, goal = 0 }) => {
   const stepLength = 0.72; // Average step length in meters
 
   // 如果 goal 为 0 或者 goal 小于步数，则将 adjustedGoal 设置为 steps，以确保图表显示 100%
@@ -27,7 +27,7 @@ const SimpleDonutChart = ({ steps = 0, goal = 0 }) => {
             return (
               <View style={styles.centerLabel}>
                 <Text style={styles.stepsText}>{steps}</Text>
-                <Text style={styles.targetText}>步数</Text>
+                <Text style={styles.targetText}>steps</Text>
               </View>
             );
           }}
@@ -36,11 +36,11 @@ const SimpleDonutChart = ({ steps = 0, goal = 0 }) => {
       <View style={styles.textContainer}>
         <View style={styles.textItem}>
           <FontAwesomeIcon icon="fa-solid fa-bullseye" style={styles.iconGoal} />
-          <Text style={styles.goalText}>目标 ：{goal}</Text>
+          <Text style={styles.goalText}>goal ：{goal}</Text>
         </View>
         <View style={styles.textItem}>
           <FontAwesomeIcon icon="fa-solid fa-ruler-horizontal" style={styles.iconDistance} />
-          <Text style={styles.distanceText}>距离：{distance.toFixed(2)} 公里</Text>
+          <Text style={styles.distanceText}>distance：{distance.toFixed(2)} km</Text>
         </View>
       </View>
     </View>
@@ -89,13 +89,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   goalText: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'black',
   },
   distanceText: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'black',
   },
 });
 
-export default SimpleDonutChart;
+export default DonutChart;

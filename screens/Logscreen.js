@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, A
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebaseConfig';
-import { saveRole, getRole } from '../firebase/roleHelper'; // 导入 saveRole 和 getRole 函数
+import {  getRole } from '../firebase/roleHelper'; // 导入 saveRole 和 getRole 函数
 import { useAuth } from '../AuthContext'; // 导入 useAuth
 
 const LogScreen = () => {

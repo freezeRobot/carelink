@@ -24,10 +24,10 @@ const ChildViewStep = ({ data }) => {
   const renderTitle = () => {
     return (
       <View style={styles.titleContainer}>
-        <Text style={styles.titleText}>Step Count Chart</Text>
+
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: '#177AD5' }]} />
+            <View style={[styles.legendColor, { backgroundColor: '#FFA500' }]} />
             <Text style={styles.legendText}>Steps</Text>
           </View>
         </View>
@@ -45,11 +45,10 @@ const ChildViewStep = ({ data }) => {
         hideDataPoints
         thickness={2}
         hideRules
-        yAxisColor="#177AD5"
+        yAxisColor="gray"
         showVerticalLines
-        verticalLinesColor="rgba(23,122,213,0.5)"
-        xAxisColor="#177AD5"
-        color="#177AD5" // 主线颜色（步数）
+        xAxisColor="gray"
+        color="#FFA500" // 主线颜色（步数）
         height={100} // 设置图表的最大高度
         width={280}  // 设置图表的最大宽度
         yAxisLabelTexts={yAxisLabelTexts} // 添加Y轴标签
@@ -70,9 +69,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   titleContainer: {
-    marginVertical: 10,
     flexDirection: 'row',
-    justifyContent: 'space-between',
   },
   titleText: {
     color: 'black',
@@ -83,17 +80,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     backgroundColor: 'transparent',
+    marginBottom:10,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 10,
   },
   legendColor: {
     height: 6,
     width: 6,
     borderRadius: 6,
-    backgroundColor: '#177AD5',
+    backgroundColor: '#FFA500',
     marginRight: 8,
   },
   legendText: {

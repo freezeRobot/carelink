@@ -4,14 +4,14 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
 import { getFirestore, doc, setDoc, getDoc, addDoc,collection,query,where,getDocs,orderBy, startAt, endAt} from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
-import { getMockSteps } from '../apis/stepApi'; // 更新引用路径
-import SimpleDonutChart from '../charts/SimpleDonutChart';
-import SugarChart from '../charts/SugarChart';
+import { getMockSteps } from '../apis/stepApi'; 
+import DonutChart from '../charts/ParentChartF';
+import SugarChart from '../charts/ParentChartS';
 import ChildViewPressure from '../charts/ChildChartP';
 import ChildViewSugar from '../charts/ChildChartS';
-import ChildViewStep from '../charts/ChildChartF'; // 确保路径正确
-import LineP from '../charts/LineP'; //血压线
-import { fetchTasks } from './TaskListScreen'; // 导入 fetchTasks 函数
+import ChildViewStep from '../charts/ChildChartF'; 
+import LineP from '../charts/ParentChartP';
+import { fetchTasks } from './TaskListScreen'; 
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 const CustomButton = ({ title, onPress, style }) => (
@@ -53,6 +53,7 @@ const DataScreen = () => {
     bloodPressure: { systolic: 0, diastolic: 0 },
     bloodSugar: 0,
     steps: 0,
+    goal:0,
   });
   const [tasks, setTasks] = useState({ todo: [], done: [] });
   const [remainingTasks, setRemainingTasks] = useState(0);
@@ -316,7 +317,7 @@ const DataScreen = () => {
               await setDoc(healthDataDocRef, {
                 uid,
                 HealthData: currentData,
-                timestamp: timestamp, // 仅保留 YYYY-MM-DD
+                timestamp: timestamp, 
               }, { merge: true });
   
               // 重新获取当天的数据
@@ -422,7 +423,7 @@ const DataScreen = () => {
               <View style={styles.dataRow}>
                 <View style={styles.titleWithIcon}>
                   <FontAwesomeIcon icon="fa-solid fa-shoe-prints" size={20} color="red" />
-                  <Text style={styles.sectionTitle}>Today's Steps</Text>
+                  <Text style={styles.sectionTitle}>Recent Steps</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={{ marginRight: 38, marginTop: 2,color: 'black', fontSize: 16 }}>Goal</Text> 
@@ -446,9 +447,9 @@ const DataScreen = () => {
 
         {role === 'parent' && (
           <>
-            <View style={styles.scoreContainer}>
-              <Text style={styles.scoreText}>{remainingTasks}</Text>
-              <Text style={styles.scoreLabel}>ToDo</Text>
+            <View style={styles.TodoContainer}>
+              <Text style={styles.TodoText}>{remainingTasks}</Text>
+              <Text>ToDo</Text>
             </View>
             <View style={styles.healthDataContainer}>
               <View style={styles.dataRow}>
@@ -500,7 +501,7 @@ const DataScreen = () => {
             </View>
             {chartsLoaded && (
               <View style={styles.stepsContent}>
-              <SimpleDonutChart steps={todayHealthData.steps} goal={todayHealthData.goal} />
+              <DonutChart steps={todayHealthData.steps} goal={todayHealthData.goal} />
               </View>
             )}
           </View>
@@ -521,25 +522,25 @@ const DataScreen = () => {
               <Text style={styles.modalTitle}>Select Data to Update</Text>
               <CustomButton title="Blood Pressure" onPress={() => handleUpdateClick('blood pressure')} />
               <CustomButton title="Blood Sugar" onPress={() => handleUpdateClick('blood sugar')} />
-              <CustomButton title="Cancel" onPress={() => setModalVisible(false)} style={styles.cancelButton} />
+              <CustomButton title="Cancel" onPress={() => setModalVisible(false)}  />
             </View>
           ) : (
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Update {updateType === 'blood pressure' ? 'Blood Pressure' : 'Blood Sugar'}</Text>
               {updateType === 'blood pressure' ? (
                 <>
-                  <Text>高压</Text>
+                  <Text>Systolic Pressure</Text>
                   <UnitInput
                     value={systolicPressure}
                     onChangeText={setSystolicPressure}
-                    placeholder="Systolic Pressure"
+                    placeholder="0"
                     unit="mmHg"
                   />
-                  <Text>低压</Text>
+                  <Text>Diastolic Pressure</Text>
                   <UnitInput
                     value={diastolicPressure}
                     onChangeText={setDiastolicPressure}
-                    placeholder="Diastolic Pressure"
+                    placeholder="0"
                     unit="mmHg"
                   />
                 </>
@@ -599,29 +600,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  dateText: {
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  scoreContainer: {
+  TodoContainer: {
     alignItems: 'center',
     marginBottom: 8,
   },
-  scoreText: {
+  TodoText: {
     fontSize: 28,
     color: 'red',
-  },
-  scoreLabel: {
-    fontSize: 14,
   },
   healthDataContainer: {
     width: '100%',
     backgroundColor: 'white',
-    marginBottom: 10, // Add marginBottom to create space below the chart
-    borderWidth: 1, // Add border width
-    borderColor: '#d3d3d3', // Add border color
-    borderRadius: 8, // Add border radius if needed
-    padding: 10, // Add padding to create space inside the border
+    marginTop: 10,
+    marginBottom: 5, 
+    borderWidth: 1, 
+    borderColor: '#d3d3d3', 
+    borderRadius: 8, 
+    padding: 10, 
   },
   dataBoxContainer: {
     flexDirection: 'row',
@@ -664,28 +659,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepsContainer: {
-    marginBottom: 20, // Add marginBottom to create space below the chart
-    borderWidth: 1, // Add border width
-    borderColor: '#d3d3d3', // Add border color
-    borderRadius: 8, // Add border radius if needed
-    padding: 10, // Add padding to create space inside the border
+    borderWidth: 1, 
+    borderColor: '#d3d3d3', 
+    borderRadius: 8, 
+    padding: 10, 
     width: '100%',
     backgroundColor: 'white',
     marginBottom: 16,
+    marginTop:10,
   },
   stepsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  reportButtonContainer: {
-    width: '100%',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
@@ -703,14 +690,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 20,
-  },
-  input: {
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    marginBottom: 16,
-    padding: 8,
-    borderRadius: 4,
   },
   unitInputContainer: {
     flexDirection: 'row',
@@ -745,13 +724,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-  },
-  cancelButtonText: {
-    color: 'black',
-  },
   chartContainer: {
     width: '100%',
     alignItems: 'center',
@@ -764,7 +736,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginLeft: 10, // 这里可以调整间距
+    marginLeft: 10, 
   },
   iconContainer: {
     flexDirection: 'row',
@@ -772,14 +744,13 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 14,
-    marginLeft: 8, // 添加左边距以在图标和文本之间创建空间
+    marginLeft: 8, 
   },
   iconButton: {
     position: 'absolute',
     top: 5,
     right: 10,
   },
-
 });
 
 export default DataScreen;

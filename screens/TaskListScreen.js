@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { getFirestore, collection, query, where, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc} from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
 import { useAuth } from '../AuthContext';
@@ -95,15 +95,15 @@ const TaskListScreen = () => {
     switch (taskType) {
       case '医疗':
         icon = "fa-solid fa-pills";
-        backgroundColor = '#a3a3ff'; // 蓝色
+        backgroundColor = '#a3a3ff'; 
         break;
       case '饮食':
         icon = "fa-solid fa-bowl-food";
-        backgroundColor = '#ff69b4'; // 粉色
+        backgroundColor = '#ff69b4'; 
         break;
       case '运动':
         icon = "fa-solid fa-person-running";
-        backgroundColor = '#ffa500'; // 橙色
+        backgroundColor = '#ffa500'; 
         break;
       default:
         return null;
@@ -159,9 +159,7 @@ const TaskListScreen = () => {
                   <Text style={styles.taskPeriod}>{task.taskPeriod}</Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.detailButton} onPress={() => openModal(task)}>
-                <Text style={styles.detailButtonText}>detail</Text>
-              </TouchableOpacity>
+              <Button title="detail" onPress={() => openModal(task)}color="#f4a261" />
               <View style={styles.taskTimeContainer}>
                 <Text style={styles.taskText}>{task.targetTime}</Text>
                 <TouchableOpacity onPress={() => handleTaskCompletion(task)}>
@@ -251,12 +249,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  manageButton: {
-    marginBottom: 20,
-  },
   section: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   header: {
     flexDirection: 'row',
@@ -279,21 +274,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderColor: '#cccccc',
-    marginVertical: 5, 
-    backgroundColor: '#fff', 
-    borderRadius: 5, 
-    shadowColor: '#000', 
+    marginVertical: 5,
+    borderRadius: 5,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+    position: 'relative', // 添加这个来允许子元素使用绝对定位
   },
   taskIconTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 2,
+    flex: 1,
   },
   taskTextContainer: {
     marginLeft: 8,
+    flex: 1,
   },
   taskTitle: {
     fontSize: 16,
@@ -303,16 +299,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#808080',
   },
-  detailButton: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  detailButtonText: {
-    color: '#000',
-  },
   taskTimeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   taskText: {
     marginRight: 4,
@@ -323,17 +314,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkedBox: {
-    width: 20,
-    height: 20,
-    backgroundColor: '#000',
   },
   iconContainer: {
     flexDirection: 'row',
@@ -410,11 +390,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#000', // 设置文字颜色为黑色
     marginLeft: 2,
-  },
-  // 保持与下面的任务列表的距离
-  section: {
-    width: '100%',
-    marginBottom: 10,
   },
 });
 
