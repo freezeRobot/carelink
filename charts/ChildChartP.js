@@ -1,13 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet,Dimensions } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
 const ChildViewPressure = ({ data }) => {
   // 获取今天的日期
   const today = new Date().toISOString().split('T')[0];
-
+  const screenWidth = Dimensions.get('window').width;
   // 过滤最近4天的数据，从今天开始向前
-  const recentData = data.slice(-5); // 保持数据顺序
+  const recentData = data.slice(-4); // 保持数据顺序
 
   // 生成图表数据
   const barData = recentData.flatMap((item) => [
@@ -67,7 +67,7 @@ const ChildViewPressure = ({ data }) => {
         noOfSections={4}
         maxValue={180}
         height={100}
-        width={280}
+        width={screenWidth * 0.55} // 使用屏幕宽度的90%
         showReferenceLine1
         referenceLine1Position={180}  // 设置参考线的位置
         referenceLine1Config={{

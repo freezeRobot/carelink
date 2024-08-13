@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, Alert,SafeAreaView,StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -61,6 +61,7 @@ const CreateTaskScreen = () => {
   };
 
   return (
+    <SafeAreaView style={styles.safeArea}>
     <View style={styles.container}>
       <Text style={styles.title}>New Task</Text>
       <TextInput
@@ -116,14 +117,16 @@ const CreateTaskScreen = () => {
         <Button title="Cancel" onPress={handleCancel} color='gray' />
       </View>
     </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 30,
     backgroundColor: '#f8f8f8',
+    paddingTop: 60, 
   },
   title: {
     fontSize: 24,
@@ -188,6 +191,9 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 16,
+  },
+  safeArea: {
+    flex: 1,
   },
 });
 

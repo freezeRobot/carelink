@@ -8,13 +8,13 @@ const SugarChart = ({ bloodSugar }) => {
   const radius = (size - strokeWidth) / 2; // 环的半径
   const center = size / 2; // 圆心
   const startAngle = -Math.PI; // 起始角度（左端）
-  const endAngleNormal = 0; // 正常状态结束角度（右端）
-  const endAngleLow = -Math.PI * (2 / 3); // 偏低状态结束角度
-  const endAngleHigh = -Math.PI / 8; // 偏高状态结束角度
+  const endAngleNormal = -Math.PI / 8; // 正常状态结束角度（右端）
+  const endAngleLow = -Math.PI * (1/2); // 偏低状态结束角度
+  const endAngleHigh = 0; // 偏高状态结束角度
 
   let endAngle = endAngleNormal;
   let text = 'Normal';
-  let color = 'green';
+  let color = 'url(#grad)'; // 默认使用渐变
 
   if (bloodSugar === 0) {
     endAngle = endAngleNormal;
@@ -27,6 +27,7 @@ const SugarChart = ({ bloodSugar }) => {
   } else if (bloodSugar > 7.0) {
     endAngle = endAngleHigh;
     text = 'High';
+    color = 'red'; // High 状态下使用红色
   }
 
   const createArcPath = (startAngle, endAngle, radius, center) => {
@@ -54,7 +55,7 @@ const SugarChart = ({ bloodSugar }) => {
         </Defs>
         <Path
           d={createArcPath(startAngle, endAngle, radius, center)}
-          stroke={color === 'yellow' ? 'yellow' : color === 'gray' ? 'gray' : 'url(#grad)'}
+          stroke={color}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -74,11 +75,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'black',
     marginTop: 10,
-  },
-  valueText: {
-    fontSize: 24,
-    color: 'black',
-    marginTop: 5,
   },
 });
 

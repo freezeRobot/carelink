@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Alert, TouchableOpacity,SafeAreaView } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
 import { getFirestore, doc, setDoc,collection,query,where,getDocs,orderBy} from 'firebase/firestore';
@@ -155,7 +155,7 @@ const DataScreen = () => {
     const healthDataCollection = collection(firestore, 'healthData');
     const data = [];
 
-    // 计算过去6天的日期范围
+    
     const startDate = new Date(currentDate);
     startDate.setDate(currentDate.getDate() - 5);
     const endDate = new Date(currentDate);
@@ -232,10 +232,13 @@ const handleSaveValues = async () => {
     }
 
     const currentData = {
-      bloodPressure: existingData.bloodPressure,
-      bloodSugar: existingData.bloodSugar,
+      bloodPressure: updateType === 'blood pressure' ? {
+        systolic: parseInt(systolicPressure, 10),
+        diastolic: parseInt(diastolicPressure, 10)
+      } : existingData.bloodPressure,
+      bloodSugar: updateType === 'blood sugar' ? parseFloat(bloodSugar) : existingData.bloodSugar,
       steps: existingData.steps,
-      goal: updateType === 'goal' ? parseInt(goalInput, 10) : existingData.goal,
+      goal: existingData.goal,
     };
 
     await setDoc(healthDataDocRef, {
@@ -243,6 +246,9 @@ const handleSaveValues = async () => {
       HealthData: currentData,
       timestamp: timestamp,
     }, { merge: true });
+
+    // 立即更新 todayHealthData 状态
+    setTodayHealthData(currentData);
 
     // 更新子女视角图表的数据
     await fetchTodayValues(user);
@@ -373,7 +379,8 @@ const handleSaveValues = async () => {
       // 更新图表数据
       const updatedPastData = await fetchPastDaysHealthData(uid, today);
       setPastHealthData(updatedPastData);
-  
+      setTodayHealthData(currentData);
+
       setGoalModalVisible(false);
       setGoalInput('');
     }
@@ -384,7 +391,8 @@ const handleSaveValues = async () => {
     setCurrentView((prevView) => (prevView === 'pressure' ? 'sugar' : 'pressure'));
   };
 
-  return (
+ return (
+  <SafeAreaView style={styles.safeArea}>
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>My Healthy Data</Text>
@@ -402,7 +410,7 @@ const handleSaveValues = async () => {
                   <Text style={styles.sectionTitle}>Health Data</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ marginRight: 38, marginTop: 2,color: 'black', fontSize: 16 }}>Switch</Text> 
+                <Text style={{ marginRight: 38, marginTop: 4,color: 'black', fontSize: 16 }}>Switch</Text> 
                 <TouchableOpacity onPress={toggleView} style={styles.iconButton}>
                   <FontAwesomeIcon icon="fa-solid fa-left-right" size={20} color="black" />
                 </TouchableOpacity>
@@ -432,7 +440,7 @@ const handleSaveValues = async () => {
                   <Text style={styles.sectionTitle}>Recent Steps</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ marginRight: 38, marginTop: 2,color: 'black', fontSize: 16 }}>Goal</Text> 
+                <Text style={{ marginRight: 38, marginTop: 4,color: 'black', fontSize: 16 }}>Goal</Text> 
                 <TouchableOpacity style={styles.iconButton} onPress={() => setGoalModalVisible(true)}>
                   <FontAwesomeIcon icon="fa-solid fa-bullseye" size={20} color="red" />
                 </TouchableOpacity>
@@ -440,11 +448,13 @@ const handleSaveValues = async () => {
               </View>
               {pressureChartLoaded && sugarChartLoaded && (
                 <View style={styles.chartContainer}>
-                <ChildViewStep data={pastHealthData.map(data => ({
-                date: data.date,
-                steps: data.steps || 0,
-                goal: data.goal || 0, // 确保你在过去的数据中包含了 goal 信息
-                }))} />
+                <ChildViewStep 
+                  data={pastHealthData.map(data => ({
+                  date: data.date,
+                  steps: data.steps || 0,             
+                  }))} 
+                   todayGoal={todayHealthData.goal} // 传递今天的 goal
+                />
                 </View>
               )}
             </View>
@@ -505,11 +515,9 @@ const handleSaveValues = async () => {
               </View>
               <Button title="Device" onPress={handleDeviceClick} color="#f4a261" />
             </View>
-            {chartsLoaded && (
               <View style={styles.stepsContent}>
               <DonutChart steps={todayHealthData.steps} goal={todayHealthData.goal} />
               </View>
-            )}
           </View>
         )}
       </ScrollView>
@@ -585,6 +593,7 @@ const handleSaveValues = async () => {
       </View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 };
 
@@ -593,6 +602,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f8f8',
     paddingBottom: 60,
+    paddingTop: 30, 
   },
   scrollContent: {
     flexGrow: 1,
@@ -609,6 +619,7 @@ const styles = StyleSheet.create({
   TodoContainer: {
     alignItems: 'center',
     marginBottom: 8,
+    marginTop:4,
   },
   TodoText: {
     fontSize: 28,
@@ -756,6 +767,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 5,
     right: 10,
+  },
+  safeArea: {
+    flex: 1,
   },
 });
 

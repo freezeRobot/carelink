@@ -72,8 +72,8 @@ const LogScreen = () => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         console.log(`User registered with email: ${email}`);
-        Alert.alert('注册成功', '请重新登录');
-        await signOut(auth);
+        Alert.alert('Registration Successful', 'Please log in with your new account.');
+        await signOut(auth); // 用户注册后登出
         navigation.navigate('LogScreen');
         setIsLogin(true);
         setEmail('');

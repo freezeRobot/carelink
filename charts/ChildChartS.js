@@ -1,12 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet ,Dimensions} from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
 const ChildViewSugar = ({ data }) => {
-  // 获取今天的日期
   const today = new Date().toISOString().split('T')[0];
-  // 过滤最近4天的数据，从今天开始向前
-  const recentData = data.slice(-5); // 保持数据顺序
+  const recentData = data.slice(-4); // 保持数据顺序
 
   // 生成图表数据
   const barData = recentData.map((item) => ({
@@ -17,6 +15,7 @@ const ChildViewSugar = ({ data }) => {
     labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }, // 当天日期文字颜色变成绿色
     frontColor: '#FFA500', // 使用橙色来表示血糖
   }));
+  const screenWidth = Dimensions.get('window').width;
 
   const renderTitle = () => {
     return (
@@ -48,7 +47,7 @@ const ChildViewSugar = ({ data }) => {
         noOfSections={4}
         maxValue={12}
         height={100}
-        width={270}
+        width={screenWidth * 0.53} // 使用屏幕宽度的90%
         showReferenceLine1
         referenceLine1Position={7.0}  
         referenceLine1Config={{

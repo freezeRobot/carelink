@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, Alert, Modal,SafeAreaView  } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc} from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -42,7 +42,7 @@ const TaskListScreen = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isTodoExpanded, setIsTodoExpanded] = useState(true); // 状态管理 To Do 部分的展开和收缩
-  const [isDoneExpanded, setIsDoneExpanded] = useState(true); // 状态管理 Done 部分的展开和收缩
+  const [isDoneExpanded, setIsDoneExpanded] = useState(false); // 状态管理 Done 部分的展开和收缩
   const navigation = useNavigation();
   const auth = getAuth();
   const { role } = useAuth(); // 获取用户和角色信息
@@ -126,6 +126,7 @@ const TaskListScreen = () => {
   };
 
   return (
+    <SafeAreaView style={styles.safeArea}>
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>My To Do’s</Text>
@@ -188,7 +189,7 @@ const TaskListScreen = () => {
                 </View>
               </View>
               <TouchableOpacity style={styles.detailButton} onPress={() => openModal(task)}>
-                <Text style={styles.detailButtonText}>detail</Text>
+              <Button title="detail" onPress={() => openModal(task)}color="#f4a261" />
               </TouchableOpacity>
               <View style={styles.taskTimeContainer}>
                 <Text style={styles.taskText}>{task.targetTime}</Text>
@@ -219,7 +220,7 @@ const TaskListScreen = () => {
                   <Text style={styles.descriptionText}>{selectedTask.taskDescription}</Text>
                 </View>
                 <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                  <Text style={styles.closeButtonText}>返回</Text>
+                  <Text style={styles.closeButtonText}>back</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -229,6 +230,7 @@ const TaskListScreen = () => {
 
       <BottomNavigation />
     </View>
+    </SafeAreaView>
   );
 };
 
@@ -236,6 +238,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingBottom: 60,
+    paddingTop: 30, 
   },
   scrollContent: {
     flexGrow: 1,
@@ -388,8 +391,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addButtonText: {
-    color: '#000', // 设置文字颜色为黑色
     marginLeft: 2,
+  },
+  safeArea: {
+    flex: 1,
   },
 });
 

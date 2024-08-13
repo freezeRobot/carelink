@@ -1,21 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 
-const ChildViewStep = ({ data }) => {
+const ChildViewStep = ({ data, todayGoal }) => {
   // 获取今天的日期
   const today = new Date().toISOString().split('T')[0];
+  const recentData = data.slice(-5); // 保持数据顺序
 
   // 生成图表数据，包括日期标签
-  const stepsData = data.map((item) => ({
+  const stepsData = recentData.map((item) => ({
     value: item.steps,
     label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
     labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }
   }));
 
+  const screenWidth = Dimensions.get('window').width;
   const maxValue = Math.max(...stepsData.map(item => item.value));
+  
   // 设置 Y 轴的最大值，近期最大值加 1000 然后取整
   const yAxisMaxValue = Math.ceil((maxValue + 1000) / 1000) * 1000;
+  
   // 生成Y轴标签，分成3段，共显示4个值
   const numberOfSegments = 3;
   const segmentInterval = yAxisMaxValue / numberOfSegments;
@@ -24,11 +28,10 @@ const ChildViewStep = ({ data }) => {
   const renderTitle = () => {
     return (
       <View style={styles.titleContainer}>
-
         <View style={styles.legendContainer}>
           <View style={styles.legendItem}>
             <View style={[styles.legendColor, { backgroundColor: '#FFA500' }]} />
-            <Text style={styles.legendText}>Steps</Text>
+            <Text style={styles.legendText}>Today'Goal: {todayGoal}</Text> 
           </View>
         </View>
       </View>
@@ -50,7 +53,7 @@ const ChildViewStep = ({ data }) => {
         xAxisColor="gray"
         color="#FFA500" // 主线颜色（步数）
         height={100} // 设置图表的最大高度
-        width={280}  // 设置图表的最大宽度
+        width={screenWidth * 0.58} // 使用屏幕宽度的58%
         yAxisLabelTexts={yAxisLabelTexts} // 添加Y轴标签
         yAxisMaxValue={yAxisMaxValue} // 设置Y轴最大值
         noOfSections={numberOfSegments} // 分段数
@@ -71,16 +74,11 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
   },
-  titleText: {
-    color: 'black',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   legendContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     backgroundColor: 'transparent',
-    marginBottom:10,
+    marginBottom: 10,
   },
   legendItem: {
     flexDirection: 'row',
