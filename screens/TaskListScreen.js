@@ -60,22 +60,22 @@ const TaskListScreen = () => {
 
   const handleManageTasks = () => {
     Alert.alert(
-      '任务管理',
-      '是否创建新的任务',
+      'Task Management',
+      'Do you want to create a new task?',
       [
-        { text: '否', onPress: () => console.log('取消') },
-        { text: '是', onPress: () => navigation.navigate('CreateTaskScreen') },
+        { text: 'No', onPress: () => console.log('Cancelled') },
+        { text: 'Yes', onPress: () => navigation.navigate('CreateTaskScreen') },
       ]
     );
   };
 
   const handleTaskCompletion = (task) => {
     Alert.alert(
-      '任务完成',
-      '确定该任务已完成吗？',
+      'Task Completion',
+      'Are you sure this task is completed?',
       [
-        { text: '取消', onPress: () => console.log('任务未完成') },
-        { text: '确定', onPress: () => updateTaskCompletion(task) },
+        { text: 'Cancel', onPress: () => console.log('Task not completed') },
+        { text: 'Confirm', onPress: () => updateTaskCompletion(task) },
       ]
     );
   };
@@ -93,15 +93,15 @@ const TaskListScreen = () => {
   const getTaskIcon = (taskType) => {
     let icon, backgroundColor;
     switch (taskType) {
-      case '医疗':
+      case 'Medical':
         icon = "fa-solid fa-pills";
-        backgroundColor = '#a3a3ff'; 
+        backgroundColor = '#177AD5'; 
         break;
-      case '饮食':
+      case 'Diet':
         icon = "fa-solid fa-bowl-food";
         backgroundColor = '#ff69b4'; 
         break;
-      case '运动':
+      case 'Exercise':
         icon = "fa-solid fa-person-running";
         backgroundColor = '#ffa500'; 
         break;

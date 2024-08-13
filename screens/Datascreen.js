@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, ScrollView, Modal, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import BottomNavigation from './BottomNavigation';
-import { getFirestore, doc, setDoc, getDoc, addDoc,collection,query,where,getDocs,orderBy, startAt, endAt} from 'firebase/firestore';
+import { getFirestore, doc, setDoc,collection,query,where,getDocs,orderBy} from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import { getMockSteps } from '../apis/stepApi'; 
 import DonutChart from '../charts/ParentChartF';
@@ -13,6 +13,7 @@ import ChildViewStep from '../charts/ChildChartF';
 import LineP from '../charts/ParentChartP';
 import { fetchTasks } from './TaskListScreen'; 
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { onSnapshot } from 'firebase/firestore';
 
 const CustomButton = ({ title, onPress, style }) => (
   <TouchableOpacity style={[styles.customButton, style]} onPress={onPress}>
@@ -76,28 +77,50 @@ const DataScreen = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (user) {
-        fetchTodayValues(user).then(() => {
-          setPressureChartLoaded(true);  // 第一张图表加载完成后，设置状态为 true
+        // 添加实时监听器以监听今天的数据变化
+        const today = new Date().toISOString().split('T')[0];
+        const healthDataRef = query(collection(firestore, 'healthData'), where("uid", "==", user.uid), where("timestamp", "==", today));
+
+        const unsubscribeSnapshot = onSnapshot(healthDataRef, (snapshot) => {
+          if (!snapshot.empty) {
+            const healthDataDoc = snapshot.docs[0].data().HealthData;
+            setTodayHealthData({
+              bloodPressure: healthDataDoc.bloodPressure || { systolic: 0, diastolic: 0 },
+              bloodSugar: healthDataDoc.bloodSugar || 0,
+              steps: healthDataDoc.steps || 0,
+              goal: healthDataDoc.goal || 0,
+            });
+
+            // 延迟渲染处理，保持和之前逻辑一致
+            fetchPastDaysHealthData(user.uid, new Date()).then(data => {
+              setPastHealthData(data); // 更新pastHealthData状态
+              
+              setTimeout(() => {
+                setPressureChartLoaded(true);  // 延迟更新第一个图表
+              }, 500); // 延迟500ms，按需调整
+
+              setTimeout(() => {
+                setSugarChartLoaded(true);     // 延迟更新第二个图表
+              }, 500); // 延迟1000ms，按需调整
+
+              setTimeout(() => {
+                setStepsChartLoaded(true);     // 延迟更新第三个图表
+              }, 500); // 延迟1500ms，按需调整
+            });
+          }
         });
-  
-        fetchPastDaysHealthData(user.uid, new Date()).then(data => {
-          setPastHealthData(data); // 更新pastHealthData状态
-          setTimeout(() => {
-            setSugarChartLoaded(true);  // 延迟后加载第二张图表
-          }, 500); // 500ms延迟，视情况调整
-  
-          setTimeout(() => {
-            setStepsChartLoaded(true);  // 再延迟后加载第三张图表
-          }, 1000); // 1000ms延迟，视情况调整
-        });
-  
+
         fetchTasks(firestore, user.uid, setTasks, setRemainingTasks, setDoneCount);
+
+        return () => {
+          unsubscribeSnapshot(); // 清理实时监听器
+        };
       }
     });
-  
+
     return () => unsubscribe();
-  }, [auth]);
-  
+  }, [auth, firestore]);
+
   const fetchTodayValues = async (user) => {
     const uid = user.uid;
     const today = new Date();
@@ -182,76 +205,56 @@ const DataScreen = () => {
 };
 
 
-  const handleSaveValues = async () => {
-    if (user) {
-      const uid = user.uid;
-      const today = new Date();
-      const timestamp = today.toISOString().split('T')[0]; // 仅保留 YYYY-MM-DD 部分
-  
-      // 获取当前用户的健康数据集合的引用
-      const healthDataCollection = collection(firestore, 'healthData');
-  
-      // 创建查询以查找当前用户和当天的文档
-      const q = query(healthDataCollection, where("uid", "==", uid), where("timestamp", "==", timestamp));
-      const querySnapshot = await getDocs(q);
-  
-      let healthDataDocRef;
-      let existingData = {
-        bloodPressure: { systolic: 0, diastolic: 0 },
-        bloodSugar: 0,
-        steps: 0,
-        goal: 0,
-      };
-  
-      if (!querySnapshot.empty) {
-        // 获取现有文档的引用
-        const existingDoc = querySnapshot.docs[0];
-        healthDataDocRef = existingDoc.ref;
-        existingData = existingDoc.data().HealthData;
-      } else {
-        // 如果没有找到文档，创建新文档
-        healthDataDocRef = doc(healthDataCollection);
-      }
-  
-      // 初始化 currentData 并保留现有数据
-      const currentData = {
-        bloodPressure: existingData.bloodPressure,
-        bloodSugar: existingData.bloodSugar,
-        steps: existingData.steps,
-        goal: existingData.goal,
-      };
-  
-      // 根据更新类型更新数据
-      if (updateType === 'blood pressure') {
-        currentData.bloodPressure = {
-          systolic: systolicPressure !== undefined ? systolicPressure : currentData.bloodPressure.systolic,
-          diastolic: diastolicPressure !== undefined ? diastolicPressure : currentData.bloodPressure.diastolic,
-        };
-      } else if (updateType === 'blood sugar') {
-        currentData.bloodSugar = bloodSugar !== undefined ? bloodSugar : currentData.bloodSugar;
-      } else if (updateType === 'steps') {
-        currentData.steps = steps !== undefined ? steps : currentData.steps;
-        currentData.goal = goal !== undefined ? goal : currentData.goal;
-      }else if (updateType === 'goal') { 
-        currentData.goal = goalInput !== undefined ? parseInt(goalInput, 10) : currentData.goal;
-      }
-  
-  
-      // 更新或创建文档
-      await setDoc(healthDataDocRef, {
-        uid,
-        HealthData: currentData,
-        timestamp: timestamp, // 仅保留 YYYY-MM-DD
-      }, { merge: true });
-  
-      setModalVisible(false);
-      setUpdateType(null); // 重置更新类型
-      fetchTodayValues(user);
-      setGoalInput(''); // 清空 goal 输入;
-      fetchTasks(firestore, user.uid, setTasks, setRemainingTasks, setDoneCount); // 更新未完成任务数
+const handleSaveValues = async () => {
+  if (user) {
+    const uid = user.uid;
+    const today = new Date();
+    const timestamp = today.toISOString().split('T')[0];
+
+    const healthDataCollection = collection(firestore, 'healthData');
+    const q = query(healthDataCollection, where("uid", "==", uid), where("timestamp", "==", timestamp));
+    const querySnapshot = await getDocs(q);
+
+    let healthDataDocRef;
+    let existingData = {
+      bloodPressure: { systolic: 0, diastolic: 0 },
+      bloodSugar: 0,
+      steps: 0,
+      goal: 0,
+    };
+
+    if (!querySnapshot.empty) {
+      const existingDoc = querySnapshot.docs[0];
+      healthDataDocRef = existingDoc.ref;
+      existingData = existingDoc.data().HealthData;
+    } else {
+      healthDataDocRef = doc(healthDataCollection);
     }
-  };
-  
+
+    const currentData = {
+      bloodPressure: existingData.bloodPressure,
+      bloodSugar: existingData.bloodSugar,
+      steps: existingData.steps,
+      goal: updateType === 'goal' ? parseInt(goalInput, 10) : existingData.goal,
+    };
+
+    await setDoc(healthDataDocRef, {
+      uid,
+      HealthData: currentData,
+      timestamp: timestamp,
+    }, { merge: true });
+
+    // 更新子女视角图表的数据
+    await fetchTodayValues(user);
+    const updatedPastData = await fetchPastDaysHealthData(uid, today);
+    setPastHealthData(updatedPastData); // 更新 pastHealthData
+
+    setModalVisible(false);
+    setUpdateType(null);
+    setGoalInput('');
+  }
+};
+
   
 
   const handleUpdateClick = (type) => {
@@ -332,7 +335,7 @@ const DataScreen = () => {
     if (user && goalInput !== '') {
       const uid = user.uid;
       const today = new Date();
-      const timestamp = today.toISOString().split('T')[0]; // 仅保留 YYYY-MM-DD 部分
+      const timestamp = today.toISOString().split('T')[0];
   
       const healthDataCollection = collection(firestore, 'healthData');
       const q = query(healthDataCollection, where("uid", "==", uid), where("timestamp", "==", timestamp));
@@ -358,7 +361,7 @@ const DataScreen = () => {
         bloodPressure: existingData.bloodPressure,
         bloodSugar: existingData.bloodSugar,
         steps: existingData.steps,
-        goal: parseInt(goalInput, 10), // 使用用户输入的 goal 值
+        goal: parseInt(goalInput, 10),
       };
   
       await setDoc(healthDataDocRef, {
@@ -367,9 +370,12 @@ const DataScreen = () => {
         timestamp: timestamp,
       }, { merge: true });
   
-      setGoalModalVisible(false); // 关闭输入框
-      setGoalInput(''); // 清空输入框内容
-      fetchTodayValues(user); // 重新获取当天的数据
+      // 更新图表数据
+      const updatedPastData = await fetchPastDaysHealthData(uid, today);
+      setPastHealthData(updatedPastData);
+  
+      setGoalModalVisible(false);
+      setGoalInput('');
     }
   };
   
@@ -570,7 +576,7 @@ const DataScreen = () => {
         <UnitInput
         value={goalInput}
         onChangeText={setGoalInput}
-        placeholder="Enter your goal"
+        placeholder="Enter goal"
         unit="steps"
         />
         <CustomButton title="Save" onPress={handleUpdateGoal} />
@@ -642,12 +648,12 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   dataBoxValue: {
-    fontSize: 24, // Larger font size for the value
+    fontSize: 24, 
     fontWeight: 'bold',
   },
   dataBoxUnit: {
-    fontSize: 16, // Smaller font size for the unit
-    color: 'gray', // Gray color for the unit
+    fontSize: 16, 
+    color: 'gray', 
   },
   referenceText: {
     fontSize: 12,
