@@ -17,7 +17,7 @@ const SugarChart = ({ bloodSugar }) => {
   let color = 'url(#grad)'; // 默认使用渐变
 
   if (bloodSugar === 0) {
-    endAngle = endAngleNormal;
+    endAngle = endAngleHigh;
     text = 'Pending';
     color = 'gray';
   } else if (bloodSugar < 4.4) {

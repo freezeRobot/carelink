@@ -132,7 +132,7 @@ const LogScreen = () => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="username"
+            placeholder="Email"
             placeholderTextColor="#888"
             value={email}
             onChangeText={setEmail}
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   selectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     marginBottom: 8,
   },
   selectionButtons: {

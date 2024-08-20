@@ -262,7 +262,6 @@ const handleSaveValues = async () => {
 };
 
   
-
   const handleUpdateClick = (type) => {
     setUpdateType(type);
     setModalVisible(true);
@@ -283,7 +282,7 @@ const handleSaveValues = async () => {
           onPress: async () => {
             if (user) {
               const steps = await getMockSteps();  // 获取模拟步数数据
-              const goal = 5000;  // 设置默认目标值，例如5000步
+              const goal = 0;  
               const uid = user.uid;
               const today = new Date();
               const timestamp = today.toISOString().split('T')[0]; // 仅保留 YYYY-MM-DD 部分
@@ -487,8 +486,8 @@ const handleSaveValues = async () => {
                     </Text>
                     <Text style={styles.dataBoxUnit}> mmHg</Text>
                   </View>
-                  <Text style={styles.referenceText}>Normal Systolic(90-140)</Text>
-                  <Text style={styles.referenceText}>Normal Diastolic(60-90)</Text>
+                  <Text style={styles.referenceText}> Systolic(90-140)</Text>
+                  <Text style={styles.referenceText}> Diastolic(60-90)</Text>
                 </View>
                 <View style={styles.dataBox}>
                   <Text style={styles.dataBoxTitle1}>Blood Sugar</Text>
@@ -667,7 +666,7 @@ const styles = StyleSheet.create({
     color: 'gray', 
   },
   referenceText: {
-    fontSize: 12,
+    fontSize: 16,
     color: 'gray',
   },
   dataRow: {
@@ -760,7 +759,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconText: {
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 8, 
   },
   iconButton: {

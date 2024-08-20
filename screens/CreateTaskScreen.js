@@ -21,7 +21,6 @@ const CreateTaskScreen = () => {
       return;
     }
   
-    // 检测目标时间格式是否正确 (格式：HH:MM)
     const timeFormat = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeFormat.test(targetTime)) {
       Alert.alert('Invalid Time', 'Please enter a valid target time in HH:MM format.');
@@ -43,7 +42,7 @@ const CreateTaskScreen = () => {
           taskType,
           taskDescription,
           targetTime,
-          taskPeriod, // 新增的时间段属性
+          taskPeriod,
           isCompleted: false,
           createdAt: new Date(),
         });

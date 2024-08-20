@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { AuthProvider } from './AuthContext'; // 导入 AuthProvider
+import { AuthProvider } from './AuthContext'; 
 import LogScreen from './screens/Logscreen';
 import DataScreen from './screens/Datascreen';
 import TaskListScreen from './screens/TaskListScreen';
@@ -28,10 +28,11 @@ import { faCircle } from '@fortawesome/free-regular-svg-icons/faCircle';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons/faCircleCheck';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons/faRightFromBracket';
+import { faSquareCheck } from '@fortawesome/free-regular-svg-icons/faSquareCheck';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 
 library.add(fab, faChartColumn,faList, faHouse, faShoePrints,faFileMedical, faCalendarDays, faRulerHorizontal, faBullseye, faCalendarPlus
-  , faBowlFood, faPersonRunning, faPills, faLeftRight, faCaretDown, faCircle, faCircleCheck, faCaretUp, faPlus,faRightFromBracket
+  , faBowlFood, faPersonRunning, faPills, faLeftRight, faCaretDown, faCircle, faCircleCheck, faCaretUp, faPlus,faRightFromBracket,faSquareCheck
  );
 const Stack = createStackNavigator();
 
@@ -41,7 +42,7 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator
                   screenOptions={{
-            headerShown: false, // 全局隐藏标题栏
+            headerShown: false, 
           }}>
           <Stack.Screen name="LogScreen" component={LogScreen} />
           <Stack.Screen name="DataScreen" component={DataScreen} />

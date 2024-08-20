@@ -6,12 +6,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 const DonutChart = ({ steps = 0, goal = 0 }) => {
   const stepLength = 0.72; // Average step length in meters
 
-  // 如果 goal 为 0 或者 goal 小于步数，则将 adjustedGoal 设置为 steps，以确保图表显示 100%
+
   const adjustedGoal = goal > 0 && goal >= steps ? goal : steps;
   const distance = (steps * stepLength) / 1000; // Convert to kilometers
 
   const pieData = [
-    { value: steps, color: '#177AD5' },
+    { value: steps, color: '#FFA500' },
     { value: adjustedGoal - steps, color: 'lightgray' },
   ];
 
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20, // Add marginBottom to create space below the chart
+    marginBottom: 20, 
   },
   chartContainer: {
     alignItems: 'center',
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   targetText: {
-    fontSize: 10,
+    fontSize: 18,
     color: 'black',
   },
   textContainer: {
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   textItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16, //留白
+    marginBottom: 16,
   },
   iconGoal: {
     color: 'red',
@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   goalText: {
-    fontSize: 16,
+    fontSize: 18,
     color: 'black',
   },
   distanceText: {
-    fontSize: 16,
+    fontSize: 18,
     color: 'black',
   },
 });

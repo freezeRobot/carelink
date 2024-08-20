@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './firebase/firebaseConfig';
-import { getRole, saveRole } from './firebase/roleHelper'; // 获取和保存角色的辅助函数
+import { getRole, saveRole } from './firebase/roleHelper'; 
 
 const AuthContext = createContext(null);
 

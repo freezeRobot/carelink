@@ -164,7 +164,11 @@ const TaskListScreen = () => {
               <View style={styles.taskTimeContainer}>
                 <Text style={styles.taskText}>{task.targetTime}</Text>
                 <TouchableOpacity onPress={() => handleTaskCompletion(task)}>
-                  <FontAwesomeIcon icon={task.isCompleted ? "fa-regular fa-circle-check" : "fa-regular fa-circle"} size={18} />
+                <FontAwesomeIcon
+                  icon="fa-regular fa-square-check"
+                   size={18}
+                    style={{ color: task.isCompleted ? "orange" : "gray" }}
+                    />
                 </TouchableOpacity>
               </View>
             </View>
@@ -194,7 +198,11 @@ const TaskListScreen = () => {
               <View style={styles.taskTimeContainer}>
                 <Text style={styles.taskText}>{task.targetTime}</Text>
                 <TouchableOpacity>
-                  <FontAwesomeIcon icon="fa-regular fa-circle-check" size={18} />
+                <FontAwesomeIcon
+                  icon="fa-regular fa-square-check"
+                   size={18}
+                    style={{ color: task.isCompleted ? "orange" : "gray" }}
+                    />
                 </TouchableOpacity>
               </View>
             </View>
@@ -283,7 +291,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    position: 'relative', // 添加这个来允许子元素使用绝对定位
+    position: 'relative', 
   },
   taskIconTextContainer: {
     flexDirection: 'row',
