@@ -4,18 +4,17 @@ import { BarChart } from 'react-native-gifted-charts';
 
 const ChildViewSugar = ({ data }) => {
   const today = new Date().toISOString().split('T')[0];
-  const recentData = data.slice(-4); // 保持数据顺序
-
-  // 生成图表数据
+  const recentData = data.slice(-4); //Keep data order
+  const screenWidth = Dimensions.get('window').width;//Set width based on screen size
+ // Generate chart data
   const barData = recentData.map((item) => ({
     value: item.bloodSugar,
     label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
     spacing: 46,
     labelWidth: 15,
-    labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }, // 当天日期文字颜色变成绿色
-    frontColor: '#FFA500', // 使用橙色来表示血糖
+    labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }, // Today's date text color turns green
+    frontColor: '#FFA500', 
   }));
-  const screenWidth = Dimensions.get('window').width;
 
   const renderTitle = () => {
     return (
@@ -47,7 +46,8 @@ const ChildViewSugar = ({ data }) => {
         noOfSections={4}
         maxValue={12}
         height={100}
-        width={screenWidth * 0.53} // 使用屏幕宽度的90%
+        width={screenWidth * 0.53} 
+        //High blood sugar reference line
         showReferenceLine1
         referenceLine1Position={7.0}  
         referenceLine1Config={{
@@ -56,6 +56,7 @@ const ChildViewSugar = ({ data }) => {
           dashWidth: 4,  
           dashGap: 2,    
         }}
+        //Dangerous blood sugar reference line
         showReferenceLine2
         referenceLine2Position={11.1}  
         referenceLine2Config={{
@@ -64,6 +65,7 @@ const ChildViewSugar = ({ data }) => {
           dashWidth: 4,  
           dashGap: 2,    
         }}
+        //hypoglycemia reference line
         showReferenceLine3
         referenceLine3Position={4.4}  
         referenceLine3Config={{

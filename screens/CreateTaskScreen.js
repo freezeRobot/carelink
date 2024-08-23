@@ -33,7 +33,7 @@ const CreateTaskScreen = () => {
         const today = new Date();
         const timestamp = today.toISOString().split('T')[0];
         const uid = user.uid;
-  
+        //structure of tasks collections
         const tasksRef = collection(firestore, 'tasks');
         await addDoc(tasksRef, {
           uid,

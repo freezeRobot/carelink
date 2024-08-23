@@ -30,12 +30,13 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons/faRightFromBracket';
 import { faSquareCheck } from '@fortawesome/free-regular-svg-icons/faSquareCheck';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-
+//Icon library
 library.add(fab, faChartColumn,faList, faHouse, faShoePrints,faFileMedical, faCalendarDays, faRulerHorizontal, faBullseye, faCalendarPlus
   , faBowlFood, faPersonRunning, faPills, faLeftRight, faCaretDown, faCircle, faCircleCheck, faCaretUp, faPlus,faRightFromBracket,faSquareCheck
  );
+ //Navigation management stack
 const Stack = createStackNavigator();
-
+//APP initialization
 const App = () => {
   return (
     <AuthProvider>

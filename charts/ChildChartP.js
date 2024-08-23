@@ -3,20 +3,18 @@ import { View, Text, StyleSheet,Dimensions } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
 const ChildViewPressure = ({ data }) => {
-  // 获取今天的日期
   const today = new Date().toISOString().split('T')[0];
-  const screenWidth = Dimensions.get('window').width;
-  // 过滤最近4天的数据，从今天开始向前
-  const recentData = data.slice(-4); // 保持数据顺序
+  const recentData = data.slice(-4); //Keep data order
+  const screenWidth = Dimensions.get('window').width;//Set width based on screen size
 
-  // 生成图表数据
+ // Generate chart data
   const barData = recentData.flatMap((item) => [
     {
       value: item.diastolic,
       label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
       spacing: 1,
       labelWidth: 25,
-      labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }, // 当天日期文字颜色变成绿色
+      labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 },// Today's date text color turns green
       frontColor: '#177AD5',
     },
     {
@@ -67,15 +65,17 @@ const ChildViewPressure = ({ data }) => {
         noOfSections={4}
         maxValue={180}
         height={100}
-        width={screenWidth * 0.55} // 使用屏幕宽度的90%
+        width={screenWidth * 0.55} 
+        //Danger blood pressure reference line
         showReferenceLine1
-        referenceLine1Position={180}  // 设置参考线的位置
+        referenceLine1Position={180}  
         referenceLine1Config={{
-          color: 'rgba(255, 0, 0, 0.5)',  // 红色带透明度的参考线
-          thickness: 2,  // 参考线粗细
-          dashWidth: 4,  // 虚线的宽度
-          dashGap: 2,    // 虚线的间隙
+          color: 'rgba(255, 0, 0, 0.5)',  
+          thickness: 2,  
+          dashWidth: 4,  
+          dashGap: 2,    
         }}
+        //High blood pressure reference line
         showReferenceLine2
         referenceLine2Position={140}  
         referenceLine2Config={{
@@ -84,6 +84,7 @@ const ChildViewPressure = ({ data }) => {
           dashWidth: 4,  
           dashGap: 2,   
         }}
+        //hypotension reference line
         showReferenceLine3
         referenceLine3Position={60}  
         referenceLine3Config={{
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 5,
-    paddingHorizontal: 55, // 添加左右内边距以减少文本之间的间隔
+    paddingHorizontal: 55,
   },
 });
 

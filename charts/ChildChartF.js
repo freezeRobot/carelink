@@ -3,24 +3,22 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 
 const ChildViewStep = ({ data, todayGoal }) => {
-  // 获取今天的日期
   const today = new Date().toISOString().split('T')[0];
-  const recentData = data.slice(-5); // 保持数据顺序
+  const recentData = data.slice(-5); //Keep data order
 
-  // 生成图表数据，包括日期标签
   const stepsData = recentData.map((item) => ({
     value: item.steps,
     label: item.date === today ? item.date.split('-').slice(1).join('/') : item.date.split('-').slice(1).join('/'),
-    labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }
+    labelTextStyle: { color: item.date === today ? 'green' : 'gray', fontSize: 10 }// Today's date text color turns green
   }));
 
   const screenWidth = Dimensions.get('window').width;
   const maxValue = Math.max(...stepsData.map(item => item.value));
   
-  // 设置 Y 轴的最大值，近期最大值加 1000 然后取整
+  //Set the maximum value of the Y-axis, add 1000 to the recent maximum value and then round
   const yAxisMaxValue = Math.ceil((maxValue + 1000) / 1000) * 1000;
   
-  // 生成Y轴标签，分成3段，共显示4个值
+// Generate Y-axis labels, divided into 3 segments, displaying a total of 4 values
   const numberOfSegments = 3;
   const segmentInterval = yAxisMaxValue / numberOfSegments;
   const yAxisLabelTexts = Array.from({ length: numberOfSegments + 1 }, (_, i) => (i * segmentInterval).toString());
@@ -44,19 +42,19 @@ const ChildViewStep = ({ data, todayGoal }) => {
       <LineChart
         initialSpacing={20}
         data={stepsData}
-        spacing={48} // 设置点和点之间的距离
+        spacing={48} 
         hideDataPoints
         thickness={2}
         hideRules
         yAxisColor="gray"
         showVerticalLines
         xAxisColor="gray"
-        color="#FFA500" // 主线颜色（步数）
-        height={100} // 设置图表的最大高度
-        width={screenWidth * 0.58} // 使用屏幕宽度的58%
-        yAxisLabelTexts={yAxisLabelTexts} // 添加Y轴标签
-        yAxisMaxValue={yAxisMaxValue} // 设置Y轴最大值
-        noOfSections={numberOfSegments} // 分段数
+        color="#FFA500"
+        height={100} 
+        width={screenWidth * 0.58} 
+        yAxisLabelTexts={yAxisLabelTexts} 
+        yAxisMaxValue={yAxisMaxValue} 
+        noOfSections={numberOfSegments} 
       />
     </View>
   );
@@ -64,7 +62,7 @@ const ChildViewStep = ({ data, todayGoal }) => {
 
 const styles = StyleSheet.create({
   chartContainer: {
-    backgroundColor: '#fff', // 设置背景色为白色
+    backgroundColor: '#fff', 
     padding: 10,
     borderRadius: 10,
     marginVertical: 10,

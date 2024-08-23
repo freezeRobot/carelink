@@ -3,16 +3,16 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, A
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebaseConfig';
-import {  getRole } from '../firebase/roleHelper'; // 导入 saveRole 和 getRole 函数
-import { useAuth } from '../AuthContext'; // 导入 useAuth
+import {  getRole } from '../firebase/roleHelper'; 
+import { useAuth } from '../AuthContext'; 
 
 const LogScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
-  const [tempRole, setTempRole] = useState(''); // 用于暂时存储选择的身份
+  const [tempRole, setTempRole] = useState(''); // Used to temporarily store the selected identity
   const navigation = useNavigation();
-  const { setUser, setRole, updateRole } = useAuth(); // 使用 AuthContext
+  const { setUser, setRole, updateRole } = useAuth(); //Use AuthContext
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -20,6 +20,7 @@ const LogScreen = () => {
         const userRole = await getRole(user.uid);
         setUser(user);
         setRole(userRole);
+        //Reset the navigation stack and navigate to the 'DataScreen'
         navigation.reset({
           index: 0,
           routes: [{ name: 'DataScreen' }],
@@ -28,12 +29,13 @@ const LogScreen = () => {
     });
     return () => unsubscribe();
   }, [navigation, setUser, setRole]);
-
+// Function to verify email address
   const validateEmail = (email) => {
+   //Regular expression used to detect email format
     const re = /\S+@\S+\.\S+/;
     return re.test(email);
   };
-
+  //Format restrictions
   const handleAuthentication = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter username and password');
@@ -61,25 +63,26 @@ const LogScreen = () => {
         console.log(`User signed in with email: ${email}`);
         console.log(`Selected role: ${tempRole}`);
 
-        // 检查并更新角色信息
+        // Check and update role information
         const existingRole = await getRole(user.uid);
         if (tempRole && tempRole !== existingRole) {
           await updateRole(user.uid, tempRole);
         }
         setUser(user);
-        setRole(tempRole || existingRole); // 使用新角色或现有角色
+        setRole(tempRole || existingRole); // Use new or existing role
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         console.log(`User registered with email: ${email}`);
         Alert.alert('Registration Successful', 'Please log in with your new account.');
-        await signOut(auth); // 用户注册后登出
+        await signOut(auth); //User logs out after registration
         navigation.navigate('LogScreen');
         setIsLogin(true);
         setEmail('');
         setPassword('');
       }
     } catch (error) {
+      //Format restrictions
       let errorMessage = 'Authentication error';
       if (error.code === 'auth/user-not-found') {
         errorMessage = 'User does not exist';
@@ -100,7 +103,7 @@ const LogScreen = () => {
       Alert.alert('Authentication error', error.message);
     }
   };
-
+  //role selection function
   const handleRoleSelection = (role) => {
     setTempRole(role);
     console.log(`TempRole set to: ${role}`);

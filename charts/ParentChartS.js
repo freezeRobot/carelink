@@ -3,18 +3,18 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const SugarChart = ({ bloodSugar }) => {
-  const size = 80; // 图表的大小
-  const strokeWidth = 10; // 环的宽度
-  const radius = (size - strokeWidth) / 2; // 环的半径
-  const center = size / 2; // 圆心
-  const startAngle = -Math.PI; // 起始角度（左端）
-  const endAngleNormal = -Math.PI / 8; // 正常状态结束角度（右端）
-  const endAngleLow = -Math.PI * (1/2); // 偏低状态结束角度
-  const endAngleHigh = 0; // 偏高状态结束角度
+  const size = 80; 
+  const strokeWidth = 10; 
+  const radius = (size - strokeWidth) / 2; 
+  const center = size / 2; // center of circle
+  const startAngle = -Math.PI; // Starting angle (left end)
+  const endAngleNormal = -Math.PI / 8; //Normal state end angle (right end)
+  const endAngleLow = -Math.PI * (1/2); //End angle of low state
+  const endAngleHigh = 0; //End angle of high state
 
   let endAngle = endAngleNormal;
   let text = 'Normal';
-  let color = 'url(#grad)'; // 默认使用渐变
+  let color = 'url(#grad)'; // Use gradient by default
 
   if (bloodSugar === 0) {
     endAngle = endAngleHigh;
@@ -27,9 +27,9 @@ const SugarChart = ({ bloodSugar }) => {
   } else if (bloodSugar > 7.0) {
     endAngle = endAngleHigh;
     text = 'High';
-    color = 'red'; // High 状态下使用红色
+    color = 'red'; 
   }
-
+    
   const createArcPath = (startAngle, endAngle, radius, center) => {
     const startX = center + radius * Math.cos(startAngle);
     const startY = center + radius * Math.sin(startAngle);

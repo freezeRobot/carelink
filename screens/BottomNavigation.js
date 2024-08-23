@@ -18,7 +18,7 @@ const BottomNavigation = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigation.navigate('LogScreen');
+      navigation.navigate('LogScreen');//navigate to logscreen
     } catch (error) {
       console.error('Error signing out: ', error);
     }
@@ -32,7 +32,7 @@ const BottomNavigation = () => {
     <View style={styles.footer}>
       <TouchableOpacity
         style={styles.footerButton}
-        onPress={() => navigateTo('DataScreen')}
+        onPress={() => navigateTo('DataScreen')}//navigate to datascreen
       >
         <FontAwesomeIcon 
           icon="fa-solid fa-chart-column"
@@ -45,7 +45,7 @@ const BottomNavigation = () => {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.footerButton}
-        onPress={() => navigateTo('TaskListScreen')}
+        onPress={() => navigateTo('TaskListScreen')}//navigate to tasklistscreen
       >
         <FontAwesomeIcon 
           icon="fa-solid fa-list"
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 16,
-    backgroundColor: '#f4a261', // 浅橙色背景
+    backgroundColor: '#f4a261', 
     position: 'absolute',
     bottom: 0,
     width: '100%',

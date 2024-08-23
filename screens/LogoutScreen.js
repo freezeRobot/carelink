@@ -4,18 +4,18 @@ import { getAuth, signOut } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 
 const LogoutScreen = () => {
-  const navigation = useNavigation();
-  const auth = getAuth();
-
+  const navigation = useNavigation();// Get navigation object
+  const auth = getAuth();// Get the Firebase authentication object
+  //Logout function
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await signOut(auth);//Perform the logout operation
       navigation.reset({
         index: 0,
-        routes: [{ name: 'LogScreen' }],
+        routes: [{ name: 'LogScreen' }],// Navigate to the LogScreen
       });
     } catch (error) {
-      console.error('Error signing out: ', error);
+      console.error('Error signing out: ', error);//test anchor
     }
   };
 
@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 18,
-    color: '#333',
   },
 });
 

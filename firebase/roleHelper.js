@@ -6,17 +6,17 @@ export const saveRole = async (uid, role) => {
   try {
     const firestore = getFirestore();
 
-    // 存储在 Firestore
+    // Stored in Firestore
     await setDoc(doc(firestore, `users/${uid}`), {
       uid,
       role,
     });
 
-    console.log(`Role ${role} saved for UID: ${uid}`); 
-    await AsyncStorage.setItem('role', role);
+    console.log(`Role ${role} saved for UID: ${uid}`); //test anchor
+    await AsyncStorage.setItem('role', role);//AsyncStorage
     await AsyncStorage.setItem('uid', uid); 
   } catch (error) {
-    console.error('Error saving role to Firestore:', error);
+    console.error('Error saving role to Firestore:', error);//test anchor
   }
 };
 
@@ -26,24 +26,24 @@ export const getRole = async (uid) => {
 
     let role = await AsyncStorage.getItem('role');
     if (role) {
-      console.log(`Role ${role} retrieved from local storage for UID: ${uid}`); // 日志记录
+      console.log(`Role ${role} retrieved from local storage for UID: ${uid}`); //test anchor
       return role;
     }
 
     const roleDoc = await getDoc(doc(firestore, `users/${uid}`));
     if (roleDoc.exists()) {
       role = roleDoc.data().role;
-      console.log(`Role ${role} retrieved from Firestore for UID: ${uid}`); 
+      console.log(`Role ${role} retrieved from Firestore for UID: ${uid}`); //test anchor
       await AsyncStorage.setItem('role', role); 
       await AsyncStorage.setItem('uid', uid); 
       return role;
     } else {
-      console.log(`No role found in Firestore for UID: ${uid}`);
+      console.log(`No role found in Firestore for UID: ${uid}`);//test anchor
     }
 
     return null;
   } catch (error) {
-    console.error('Error getting role from Firestore:', error);
+    console.error('Error getting role from Firestore:', error);//test anchor
     return null;
   }
 };

@@ -19,7 +19,7 @@ export const fetchTasks = async (firestore, uid, setTasks, setTodoCount, setDone
 
     querySnapshot.forEach((doc) => {
       const task = doc.data();
-      task.id = doc.id; // 保存文档 ID
+      task.id = doc.id; //Save document ID
       if (task.isCompleted) {
         doneTasks.push(task);
       } else {
@@ -28,8 +28,8 @@ export const fetchTasks = async (firestore, uid, setTasks, setTodoCount, setDone
     });
 
     setTasks({ todo: todoTasks, done: doneTasks });
-    setTodoCount(todoTasks.length); // 设置未完成任务数量
-    setDoneCount(doneTasks.length); // 设置已完成任务数量
+    setTodoCount(todoTasks.length); //Set the number of unfinished tasks
+    setDoneCount(doneTasks.length);//Set the number of completed tasks
   } catch (error) {
     console.error('Error fetching tasks: ', error.message);
   }
@@ -41,11 +41,11 @@ const TaskListScreen = () => {
   const [doneCount, setDoneCount] = useState(0);
   const [selectedTask, setSelectedTask] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [isTodoExpanded, setIsTodoExpanded] = useState(true); // 状态管理 To Do 部分的展开和收缩
-  const [isDoneExpanded, setIsDoneExpanded] = useState(false); // 状态管理 Done 部分的展开和收缩
+  const [isTodoExpanded, setIsTodoExpanded] = useState(true); // Expansion and contraction of state management To Do part
+  const [isDoneExpanded, setIsDoneExpanded] = useState(false); 
   const navigation = useNavigation();
   const auth = getAuth();
-  const { role } = useAuth(); // 获取用户和角色信息
+  const { role } = useAuth(); // Get user and role information
   const firestore = getFirestore();
 
   useEffect(() => {
@@ -82,14 +82,14 @@ const TaskListScreen = () => {
 
   const updateTaskCompletion = async (task) => {
     try {
-      const taskRef = doc(firestore, 'tasks', task.id); // 使用正确的文档 ID
+      const taskRef = doc(firestore, 'tasks', task.id); // Use the correct document ID
       await updateDoc(taskRef, { isCompleted: true });
-      fetchTasks(firestore, auth.currentUser.uid, setTasks, setTodoCount, setDoneCount); // 更新任务列表
+      fetchTasks(firestore, auth.currentUser.uid, setTasks, setTodoCount, setDoneCount); //Update task list
     } catch (error) {
       console.error('Error updating task: ', error.message);
     }
   };
-
+  //Generate corresponding visual icons based on type
   const getTaskIcon = (taskType) => {
     let icon, backgroundColor;
     switch (taskType) {

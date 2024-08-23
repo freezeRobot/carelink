@@ -3,14 +3,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 const LineP = ({ systolic, diastolic }) => {
-  const size = 100; // 图表的大小
-  const strokeWidth = 15; // 线条的宽度
-  const normalColor = 'url(#grad)'; // 正常范围的渐变颜色
-  const highColor = 'red'; // 偏高的颜色
-  const lowColor = 'yellow'; // 偏低的颜色
-  const noupdateColor ='gray'//未更新的颜色
+  const size = 100; 
+  const strokeWidth = 15; 
+  const normalColor = 'url(#grad)'; // Normal range gradient color
+  const highColor = 'red'; //higher color
+  const lowColor = 'yellow'; //lower color
+  const noupdateColor ='gray'//unupdated color
   let color = normalColor;
-  let ratio = 1.0; // 默认全线条
+  let ratio = 1.0; 
   let text = 'Normal';
 
   if(systolic ===0 || diastolic ===0)
@@ -27,7 +27,7 @@ const LineP = ({ systolic, diastolic }) => {
   }
 
   const createLinePath = (ratio, size) => {
-    const startX = size * (1 - ratio) / 2; // 居中对齐
+    const startX = size * (1 - ratio) / 2; 
     const endX = size * (1 + ratio) / 2;
     return `M${startX},${size / 2} L${endX},${size / 2}`;
   };
